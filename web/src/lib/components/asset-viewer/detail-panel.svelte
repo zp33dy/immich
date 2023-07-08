@@ -8,6 +8,7 @@
   import Close from 'svelte-material-icons/Close.svelte';
   import ImageOutline from 'svelte-material-icons/ImageOutline.svelte';
   import MapMarkerOutline from 'svelte-material-icons/MapMarkerOutline.svelte';
+  import TagOutline from 'svelte-material-icons/TagOutline.svelte';
   import { createEventDispatcher } from 'svelte';
   import { AssetResponseDto, AlbumResponseDto, api, ThumbnailFormat } from '@api';
   import { asByteUnitString } from '../../utils/byte-units';
@@ -236,6 +237,21 @@
         </div>
       </div>
     {/if}
+
+    {#if asset.tags.length > 0}
+    <div class="flex gap-4 py-4">
+      <div><TagOutline size="24" /></div>
+      <div class="container mx-auto flex flex-row">
+        {#each asset.tags as tag}
+          <a href="/tags/{tag.id}" on:click={() => dispatch('close-viewer')}>
+            <div class="flex justify-center items-center m-1 px-2 py-1 border border-gray-300 rounded-full text-base dark:text-immich-dark-fg font-medium">
+              <div class="flex-initial max-w-full leading-none text-xs font-normal text-center">{tag.name}</div>
+            </div>
+          </a>
+        {/each}
+      </div>
+    </div>
+  {/if}
   </div>
 </section>
 
