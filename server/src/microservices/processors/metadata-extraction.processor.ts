@@ -4,13 +4,14 @@ import {
   IEntityJob,
   IGeocodingRepository,
   IJobRepository,
+  ITagRepository,
   JobName,
   JOBS_ASSET_PAGINATION_SIZE,
   QueueName,
   usePagination,
   WithoutProperty,
 } from '@app/domain';
-import { AssetEntity, AssetType, ExifEntity } from '@app/infra/entities';
+import { AssetEntity, AssetType, ExifEntity, TagEntity, TagType } from '@app/infra/entities';
 import { Inject, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -41,6 +42,7 @@ export class MetadataExtractionProcessor {
     @Inject(IAssetRepository) private assetRepository: IAssetRepository,
     @Inject(IJobRepository) private jobRepository: IJobRepository,
     @Inject(IGeocodingRepository) private geocodingRepository: IGeocodingRepository,
+    @Inject(ITagRepository) private tagRepository: ITagRepository,
     @InjectRepository(ExifEntity) private exifRepository: Repository<ExifEntity>,
 
     configService: ConfigService,
@@ -198,6 +200,23 @@ export class MetadataExtractionProcessor {
       if (newExif.orientation === null) {
         newExif.orientation = metadata.orientation !== undefined ? `${metadata.orientation}` : null;
       }
+    }
+
+    // Retrieve tags from exif and create / associate them to the asset
+    const tags = getExifProperty('TagsList') ?? []
+    if (tags.length > 0) {
+      for (const name of tags) {
+        let tag;
+        try {
+          tag = await this.tagRepository.getByName(asset.ownerId, name);
+        } catch (error: any) {
+          tag = await this.tagRepository.create({ name, userId: asset.ownerId, type: TagType.CUSTOM })
+        }
+
+        asset.tags.push({ id: tag.id } as TagEntity);
+      }
+
+      await this.assetRepository.save(asset)
     }
 
     await this.exifRepository.upsert(newExif, { conflictPaths: ['assetId'] });

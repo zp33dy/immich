@@ -27,6 +27,10 @@ export class TagRepository implements ITagRepository {
     return this.repository.find({ where: { userId } });
   }
 
+  getByName(userId: string, name: string): Promise<TagEntity> {
+    return this.repository.findOneOrFail({ where: { userId, name }});
+  }
+
   create(tag: Partial<TagEntity>): Promise<TagEntity> {
     return this.save(tag);
   }
