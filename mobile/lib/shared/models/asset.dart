@@ -30,7 +30,8 @@ class Asset {
         exifInfo =
             remote.exifInfo != null ? ExifInfo.fromDto(remote.exifInfo!) : null,
         isFavorite = remote.isFavorite,
-        isArchived = remote.isArchived;
+        isArchived = remote.isArchived,
+        tags = remote.tags;
 
   Asset.local(AssetEntity local, List<int> hash)
       : localId = local.id,
@@ -45,7 +46,8 @@ class Asset {
         updatedAt = local.modifiedDateTime,
         isFavorite = local.isFavorite,
         isArchived = false,
-        fileCreatedAt = local.createDateTime {
+        fileCreatedAt = local.createDateTime,
+        tags = [] {
     if (fileCreatedAt.year == 1970) {
       fileCreatedAt = fileModifiedAt;
     }
@@ -74,6 +76,7 @@ class Asset {
     this.exifInfo,
     required this.isFavorite,
     required this.isArchived,
+    required this.tags,
   });
 
   @ignore
@@ -138,6 +141,8 @@ class Asset {
   bool isFavorite;
 
   bool isArchived;
+
+  List<dynamic> tags;
 
   @ignore
   ExifInfo? exifInfo;
@@ -216,7 +221,8 @@ class Asset {
       livePhotoVideoId.hashCode ^
       isFavorite.hashCode ^
       isLocal.hashCode ^
-      isArchived.hashCode;
+      isArchived.hashCode ^
+      tags.hashCode;
 
   /// Returns `true` if this [Asset] can updated with values from parameter [a]
   bool canUpdate(Asset a) {
@@ -306,6 +312,7 @@ class Asset {
     String? livePhotoVideoId,
     bool? isFavorite,
     bool? isArchived,
+    List<dynamic>? tags,
     ExifInfo? exifInfo,
   }) =>
       Asset(
@@ -326,6 +333,7 @@ class Asset {
         isFavorite: isFavorite ?? this.isFavorite,
         isArchived: isArchived ?? this.isArchived,
         exifInfo: exifInfo ?? this.exifInfo,
+        tags: tags ?? [],
       );
 
   Future<void> put(Isar db) async {
@@ -365,15 +373,15 @@ class Asset {
   "remoteId": "${remoteId ?? "N/A"}",
   "localId": "${localId ?? "N/A"}",
   "checksum": "$checksum",
-  "ownerId": $ownerId, 
+  "ownerId": $ownerId,
   "livePhotoVideoId": "${livePhotoVideoId ?? "N/A"}",
   "fileCreatedAt": "$fileCreatedAt",
-  "fileModifiedAt": "$fileModifiedAt", 
-  "updatedAt": "$updatedAt", 
-  "durationInSeconds": $durationInSeconds, 
+  "fileModifiedAt": "$fileModifiedAt",
+  "updatedAt": "$updatedAt",
+  "durationInSeconds": $durationInSeconds,
   "type": "$type",
-  "fileName": "$fileName", 
-  "isFavorite": $isFavorite, 
+  "fileName": "$fileName",
+  "isFavorite": $isFavorite,
   "isRemote: $isRemote,
   "storage": "$storage",
   "width": ${width ?? "N/A"},

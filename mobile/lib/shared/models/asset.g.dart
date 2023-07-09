@@ -203,6 +203,7 @@ void _assetSerialize(
   writer.writeByte(offsets[12], object.type.index);
   writer.writeDateTime(offsets[13], object.updatedAt);
   writer.writeInt(offsets[14], object.width);
+  writer.writeString(offsets[15], jsonEncode(object.tags));
 }
 
 Asset _assetDeserialize(
@@ -229,6 +230,7 @@ Asset _assetDeserialize(
         AssetType.other,
     updatedAt: reader.readDateTime(offsets[13]),
     width: reader.readIntOrNull(offsets[14]),
+    tags: jsonDecode(reader.readString(offsets[15])),
   );
   return object;
 }
