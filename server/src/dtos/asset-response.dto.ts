@@ -99,7 +99,7 @@ const mapStack = (entity: AssetEntity) => {
   return {
     id: entity.stack.id,
     primaryAssetId: entity.stack.primaryAssetId,
-    assetCount: entity.stack.assetCount ?? entity.stack.assets.length,
+    assetCount: entity.stack.assetCount ?? (entity.stack.assets.length + 1),
   };
 };
 
