@@ -8,9 +8,10 @@ import sharp from 'sharp';
 import { Colorspace } from 'src/config';
 import { ILoggerRepository } from 'src/interfaces/logger.interface';
 import {
+  GenerateImageOptions,
   IMediaRepository,
   ImageDimensions,
-  ThumbnailOptions,
+  ImageOptions,
   TranscodeCommand,
   VideoInfo,
 } from 'src/interfaces/media.interface';
@@ -44,25 +45,29 @@ export class MediaRepository implements IMediaRepository {
     return true;
   }
 
-  async generateThumbnail(input: string | Buffer, output: string, options: ThumbnailOptions): Promise<void> {
+  async generateImage(input: string | Buffer, options: GenerateImageOptions): Promise<void> {
     // some invalid images can still be processed by sharp, but we want to fail on them by default to avoid crashes
     const pipeline = sharp(input, { failOn: options.processInvalidImages ? 'none' : 'error', limitInputPixels: false })
       .pipelineColorspace(options.colorspace === Colorspace.SRGB ? 'srgb' : 'rgb16')
+      .withIccProfile(options.colorspace)
       .rotate();
 
+    await Promise.all(options.outputs.map((output) => this.saveImage(pipeline.clone(), output)));
+  }
+
+  private saveImage(pipeline: sharp.Sharp, options: ImageOptions): Promise<sharp.OutputInfo> {
     if (options.crop) {
       pipeline.extract(options.crop);
     }
 
-    await pipeline
+    return pipeline
       .resize(options.size, options.size, { fit: 'outside', withoutEnlargement: true })
-      .withIccProfile(options.colorspace)
       .toFormat(options.format, {
         quality: options.quality,
         // this is default in libvips (except the threshold is 90), but we need to set it manually in sharp
         chromaSubsampling: options.quality >= 80 ? '4:4:4' : '4:2:0',
       })
-      .toFile(output);
+      .toFile(options.path);
   }
 
   async probe(input: string): Promise<VideoInfo> {
