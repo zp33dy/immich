@@ -88,7 +88,7 @@ export interface VideoCodecHWConfig extends VideoCodecSWConfig {
 export interface IMediaRepository {
   // image
   extract(input: string, output: string): Promise<boolean>;
-  generateThumbnail(input: string | Buffer, options: Partial<GenerateImageOptions>): Promise<void>;
+  generateThumbnails(input: string | Buffer, options: Partial<GenerateImageOptions>): Promise<void>;
   generateThumbhash(imagePath: string): Promise<Buffer>;
   getImageDimensions(input: string): Promise<ImageDimensions>;
 

@@ -246,12 +246,19 @@ export class MediaService {
     try {
       const useExtracted = didExtract && (await this.shouldUseExtractedImage(extractedPath, image.previewSize));
       const outputPath = useExtracted ? extractedPath : asset.originalPath;
-      await this.mediaRepository.generateThumbnail(outputPath, imageOptions);
+      await this.mediaRepository.generateThumbnails(outputPath, imageOptions);
     } finally {
       if (didExtract) {
         await this.storageRepository.unlink(extractedPath);
       }
     }
+
+    this.logger.log(
+      `Successfully generated ${image.previewFormat.toUpperCase()} ${asset.type.toLowerCase()} ${AssetPathType.PREVIEW} for asset ${asset.id}`,
+    );
+    this.logger.log(
+      `Successfully generated ${image.thumbnailFormat.toUpperCase()} ${asset.type.toLowerCase()} ${AssetPathType.THUMBNAIL} for asset ${asset.id}`,
+    );
 
     return imageOptions;
   }

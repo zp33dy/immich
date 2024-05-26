@@ -45,7 +45,7 @@ export class MediaRepository implements IMediaRepository {
     return true;
   }
 
-  async generateImage(input: string | Buffer, options: GenerateImageOptions): Promise<void> {
+  async generateImages(input: string | Buffer, options: GenerateImageOptions): Promise<void> {
     // some invalid images can still be processed by sharp, but we want to fail on them by default to avoid crashes
     const pipeline = sharp(input, { failOn: options.processInvalidImages ? 'none' : 'error', limitInputPixels: false })
       .pipelineColorspace(options.colorspace === Colorspace.SRGB ? 'srgb' : 'rgb16')

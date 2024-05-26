@@ -927,20 +927,20 @@ describe(PersonService.name, () => {
     it('should skip a person not found', async () => {
       personMock.getById.mockResolvedValue(null);
       await sut.handleGeneratePersonThumbnail({ id: 'person-1' });
-      expect(mediaMock.generateThumbnail).not.toHaveBeenCalled();
+      expect(mediaMock.generateThumbnails).not.toHaveBeenCalled();
     });
 
     it('should skip a person without a face asset id', async () => {
       personMock.getById.mockResolvedValue(personStub.noThumbnail);
       await sut.handleGeneratePersonThumbnail({ id: 'person-1' });
-      expect(mediaMock.generateThumbnail).not.toHaveBeenCalled();
+      expect(mediaMock.generateThumbnails).not.toHaveBeenCalled();
     });
 
     it('should skip a person with a face asset id not found', async () => {
       personMock.getById.mockResolvedValue({ ...personStub.primaryPerson, faceAssetId: faceStub.middle.id });
       personMock.getFaceByIdWithAssets.mockResolvedValue(faceStub.face1);
       await sut.handleGeneratePersonThumbnail({ id: 'person-1' });
-      expect(mediaMock.generateThumbnail).not.toHaveBeenCalled();
+      expect(mediaMock.generateThumbnails).not.toHaveBeenCalled();
     });
 
     it('should skip a person with a face asset id without a thumbnail', async () => {
@@ -948,7 +948,7 @@ describe(PersonService.name, () => {
       personMock.getFaceByIdWithAssets.mockResolvedValue(faceStub.face1);
       assetMock.getByIds.mockResolvedValue([assetStub.noResizePath]);
       await sut.handleGeneratePersonThumbnail({ id: 'person-1' });
-      expect(mediaMock.generateThumbnail).not.toHaveBeenCalled();
+      expect(mediaMock.generateThumbnails).not.toHaveBeenCalled();
     });
 
     it('should generate a thumbnail', async () => {
@@ -960,7 +960,7 @@ describe(PersonService.name, () => {
 
       expect(assetMock.getById).toHaveBeenCalledWith(faceStub.middle.assetId, { exifInfo: true, files: true });
       expect(storageMock.mkdirSync).toHaveBeenCalledWith('upload/thumbs/admin_id/pe/rs');
-      expect(mediaMock.generateThumbnail).toHaveBeenCalledWith(assetStub.primaryImage.originalPath, {
+      expect(mediaMock.generateThumbnails).toHaveBeenCalledWith(assetStub.primaryImage.originalPath, {
         colorspace: Colorspace.P3,
         thumbnail: {
           format: 'jpeg',
@@ -989,7 +989,7 @@ describe(PersonService.name, () => {
 
       await sut.handleGeneratePersonThumbnail({ id: personStub.primaryPerson.id });
 
-      expect(mediaMock.generateThumbnail).toHaveBeenCalledWith(assetStub.image.originalPath, {
+      expect(mediaMock.generateThumbnails).toHaveBeenCalledWith(assetStub.image.originalPath, {
         colorspace: Colorspace.P3,
         thumbnail: {
           format: 'jpeg',
@@ -1014,7 +1014,7 @@ describe(PersonService.name, () => {
 
       await sut.handleGeneratePersonThumbnail({ id: personStub.primaryPerson.id });
 
-      expect(mediaMock.generateThumbnail).toHaveBeenCalledWith(assetStub.primaryImage.originalPath, {
+      expect(mediaMock.generateThumbnails).toHaveBeenCalledWith(assetStub.primaryImage.originalPath, {
         colorspace: Colorspace.P3,
         thumbnail: {
           format: 'jpeg',
