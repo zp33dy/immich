@@ -52,7 +52,10 @@ export class MediaRepository implements IMediaRepository {
       .withIccProfile(options.colorspace)
       .rotate();
 
-    await Promise.all(options.outputs.map((output) => this.saveImage(pipeline.clone(), output)));
+    const outputs = [options.preview, options.thumbnail]
+      .filter((output): output is ImageOptions => !!output)
+      .map((output) => this.saveImage(pipeline.clone(), output));
+    await Promise.all(outputs);
   }
 
   private saveImage(pipeline: sharp.Sharp, options: ImageOptions): Promise<sharp.OutputInfo> {

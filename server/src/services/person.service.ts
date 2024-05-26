@@ -566,16 +566,14 @@ export class PersonService {
 
     const thumbnailOptions = {
       colorspace: image.colorspace,
-      outputs: [
-        {
-          format: ImageFormat.JPEG,
-          path: thumbnailPath,
-          size: FACE_THUMBNAIL_SIZE,
-          quality: image.quality,
-          crop: this.getCrop({ old: { width: oldWidth, height: oldHeight }, new: { width, height } }, { x1, y1, x2, y2 }),
+      thumbnail: {
+        format: ImageFormat.JPEG,
+        path: thumbnailPath,
+        size: FACE_THUMBNAIL_SIZE,
+        quality: image.quality,
+        crop: this.getCrop({ old: { width: oldWidth, height: oldHeight }, new: { width, height } }, { x1, y1, x2, y2 }),
       processInvalidImages: process.env.IMMICH_PROCESS_INVALID_IMAGES === 'true',
-        },
-      ],
+      },
     };
 
     await this.mediaRepository.generateImage(inputPath, thumbnailOptions);

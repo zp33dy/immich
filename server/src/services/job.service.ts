@@ -252,7 +252,7 @@ export class JobService {
 
       case JobName.STORAGE_TEMPLATE_MIGRATION_SINGLE: {
         if (item.data.source === 'upload' || item.data.source === 'copy') {
-          await this.jobRepository.queue({ name: JobName.GENERATE_PREVIEW, data: item.data });
+          await this.jobRepository.queue({ name: JobName.GENERATE_THUMBNAILS, data: item.data });
         }
         break;
       }
@@ -266,40 +266,27 @@ export class JobService {
         break;
       }
 
-      case JobName.GENERATE_PREVIEW: {
-        const jobs: JobItem[] = [
-          { name: JobName.GENERATE_THUMBNAIL, data: item.data },
-          { name: JobName.GENERATE_THUMBHASH, data: item.data },
-        ];
+      case JobName.GENERATE_THUMBNAILS: {
+        const jobs: JobItem[] = [{ name: JobName.GENERATE_THUMBHASH, data: item.data }];
 
         if (item.data.source === 'upload') {
           jobs.push({ name: JobName.SMART_SEARCH, data: item.data }, { name: JobName.FACE_DETECTION, data: item.data });
 
-          const [asset] = await this.assetRepository.getByIds([item.data.id]);
+          const [asset] = await this.assetRepository.getByIdsWithAllRelations([item.data.id]);
           if (asset) {
             if (asset.type === AssetType.VIDEO) {
               jobs.push({ name: JobName.VIDEO_CONVERSION, data: item.data });
             } else if (asset.livePhotoVideoId) {
               jobs.push({ name: JobName.VIDEO_CONVERSION, data: { id: asset.livePhotoVideoId } });
             }
+
+            if (asset.isVisible) {
+              this.eventRepository.clientSend(ClientEvent.UPLOAD_SUCCESS, asset.ownerId, mapAsset(asset));
+            }
           }
         }
 
         await this.jobRepository.queueAll(jobs);
-        break;
-      }
-
-      case JobName.GENERATE_THUMBNAIL: {
-        if (!(item.data.notify || item.data.source === 'upload')) {
-          break;
-        }
-
-        const [asset] = await this.assetRepository.getByIdsWithAllRelations([item.data.id]);
-
-        // Only live-photo motion part will be marked as not visible immediately on upload. Skip notifying clients
-        if (asset && asset.isVisible) {
-          this.eventRepository.clientSend(ClientEvent.UPLOAD_SUCCESS, asset.ownerId, mapAsset(asset));
-        }
         break;
       }
 

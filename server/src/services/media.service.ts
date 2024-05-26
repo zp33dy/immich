@@ -11,7 +11,7 @@ import {
 } from 'src/config';
 import { GeneratedImageType, StorageCore, StorageFolder } from 'src/cores/storage.core';
 import { SystemConfigCore } from 'src/cores/system-config.core';
-import { SystemConfigFFmpegDto } from 'src/dtos/system-config.dto';
+import { SystemConfigFFmpegDto, SystemConfigImageDto } from 'src/dtos/system-config.dto';
 import { AssetEntity } from 'src/entities/asset.entity';
 import { AssetPathType } from 'src/entities/move.entity';
 import { AssetFileType, AssetType } from 'src/enum';
@@ -28,7 +28,13 @@ import {
   QueueName,
 } from 'src/interfaces/job.interface';
 import { ILoggerRepository } from 'src/interfaces/logger.interface';
-import { AudioStreamInfo, IMediaRepository, VideoFormat, VideoStreamInfo } from 'src/interfaces/media.interface';
+import {
+  AudioStreamInfo,
+  GenerateImageOptions,
+  IMediaRepository,
+  VideoFormat,
+  VideoStreamInfo,
+} from 'src/interfaces/media.interface';
 import { IMoveRepository } from 'src/interfaces/move.interface';
 import { IPersonRepository } from 'src/interfaces/person.interface';
 import { IStorageRepository } from 'src/interfaces/storage.interface';
@@ -86,13 +92,9 @@ export class MediaService {
       for (const asset of assets) {
         const { previewFile, thumbnailFile } = getAssetFiles(asset.files);
 
-        if (!previewFile || force) {
-          jobs.push({ name: JobName.GENERATE_PREVIEW, data: { id: asset.id } });
+        if (!previewFile || !thumbnailFile || force) {
+          jobs.push({ name: JobName.GENERATE_THUMBNAILS, data: { id: asset.id } });
           continue;
-        }
-
-        if (!thumbnailFile) {
-          jobs.push({ name: JobName.GENERATE_THUMBNAIL, data: { id: asset.id } });
         }
 
         if (!asset.thumbhash) {
@@ -172,7 +174,7 @@ export class MediaService {
     return JobStatus.SUCCESS;
   }
 
-  async handleGenerateImages({ id }: IEntityJob): Promise<JobStatus> {
+  async handleGenerateThumbnails({ id }: IEntityJob): Promise<JobStatus> {
     const [{ image }, [asset]] = await Promise.all([
       this.configCore.getConfig({ withCache: true }),
       this.assetRepository.getByIds([id], { exifInfo: true, files: true }),
@@ -188,7 +190,9 @@ export class MediaService {
     let previewPath: string | undefined;
     let thumbnailPath: string | undefined;
     if (asset.type === AssetType.IMAGE) {
-      [previewPath, thumbnailPath] = await this.generateImageThumbnails(asset);
+      const { preview, thumbnail } = await this.generateImageThumbnails(asset);
+      previewPath = preview.path;
+      thumbnailPath = thumbnail.path;
     } else if (asset.type === AssetType.VIDEO) {
       previewPath = await this.generateVideoThumbnail(asset, AssetPathType.PREVIEW, image.previewFormat);
       thumbnailPath = await this.generateVideoThumbnail(asset, AssetPathType.THUMBNAIL, image.thumbnailFormat);
@@ -232,45 +236,46 @@ export class MediaService {
 
   private async generateImageThumbnails(asset: AssetEntity) {
     const { image } = await this.configCore.getConfig({ withCache: true });
-    const previewPath = StorageCore.getImagePath(asset, AssetPathType.PREVIEW, image.previewFormat);
-    const thumbnailPath = StorageCore.getImagePath(asset, AssetPathType.THUMBNAIL, image.thumbnailFormat);
-    this.storageCore.ensureFolders(previewPath);
+    const imageOptions = this.getImageOptions(asset, image);
+    this.storageCore.ensureFolders(imageOptions.preview.path);
 
     const shouldExtract = image.extractEmbedded && mimeTypes.isRaw(asset.originalPath);
-    const extractedPath = StorageCore.getTempPathInDir(previewPath);
+    const extractedPath = StorageCore.getTempPathInDir(imageOptions.preview.path);
     const didExtract = shouldExtract && (await this.mediaRepository.extract(asset.originalPath, extractedPath));
 
     try {
       const useExtracted = didExtract && (await this.shouldUseExtractedImage(extractedPath, image.previewSize));
-      const colorspace = this.isSRGB(asset) ? Colorspace.SRGB : image.colorspace;
-      const imageOptions = {
-        colorspace,
-        outputs: [
-          {
-            format: image.previewFormat,
-            path: previewPath,
-            quality: image.quality,
-            size: image.previewSize,
-          },
-          {
-            format: image.thumbnailFormat,
-            path: thumbnailPath,
-            quality: image.quality,
-            size: image.thumbnailSize,
-          },
-        ],
-        processInvalidImages: process.env.IMMICH_PROCESS_INVALID_IMAGES === 'true',
-      };
-
       const outputPath = useExtracted ? extractedPath : asset.originalPath;
-      await this.mediaRepository.generateImage(outputPath, imageOptions);
+      await this.mediaRepository.generateThumbnail(outputPath, imageOptions);
     } finally {
       if (didExtract) {
         await this.storageRepository.unlink(extractedPath);
       }
     }
 
-    return [previewPath, thumbnailPath];
+    return imageOptions;
+  }
+
+  private getImageOptions(asset: AssetEntity, image: SystemConfigImageDto): GenerateImageOptions {
+    const previewPath = StorageCore.getImagePath(asset, AssetPathType.PREVIEW, image.previewFormat);
+    const thumbnailPath = StorageCore.getImagePath(asset, AssetPathType.THUMBNAIL, image.thumbnailFormat);
+    const colorspace = this.isSRGB(asset) ? Colorspace.SRGB : image.colorspace;
+    return {
+      colorspace,
+      preview: {
+        format: image.previewFormat,
+        path: previewPath,
+        quality: image.quality,
+        size: image.previewSize,
+      },
+      thumbnail: {
+        format: image.thumbnailFormat,
+        path: thumbnailPath,
+        quality: image.quality,
+        size: image.thumbnailSize,
+      },
+      processInvalidImages: process.env.IMMICH_PROCESS_INVALID_IMAGES === 'true',
+    };
   }
 
   private async generateVideoThumbnail(asset: AssetEntity, type: GeneratedImageType, format: ImageFormat) {

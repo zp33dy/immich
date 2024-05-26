@@ -471,7 +471,7 @@ export class SystemConfigThemeDto {
   customCss!: string;
 }
 
-class SystemConfigImageDto {
+export class SystemConfigImageDto {
   @IsEnum(ImageFormat)
   @ApiProperty({ enumName: 'ImageFormat', enum: ImageFormat })
   thumbnailFormat!: ImageFormat;

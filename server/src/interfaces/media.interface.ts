@@ -20,7 +20,8 @@ export interface ImageOptions {
 
 export interface GenerateImageOptions {
   colorspace: string;
-  outputs: ImageOptions[];
+  preview: ImageOptions;
+  thumbnail: ImageOptions;
   processInvalidImages: boolean;
 }
 
@@ -87,7 +88,7 @@ export interface VideoCodecHWConfig extends VideoCodecSWConfig {
 export interface IMediaRepository {
   // image
   extract(input: string, output: string): Promise<boolean>;
-  generateImage(input: string | Buffer, options: GenerateImageOptions): Promise<void>;
+  generateThumbnail(input: string | Buffer, options: Partial<GenerateImageOptions>): Promise<void>;
   generateThumbhash(imagePath: string): Promise<Buffer>;
   getImageDimensions(input: string): Promise<ImageDimensions>;
 
