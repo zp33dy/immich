@@ -65,7 +65,6 @@ export class MicroservicesService {
       [JobName.MIGRATE_PERSON]: (data) => this.personService.handlePersonMigration(data),
       [JobName.QUEUE_GENERATE_THUMBNAILS]: (data) => this.mediaService.handleQueueGenerateThumbnails(data),
       [JobName.GENERATE_THUMBNAILS]: (data) => this.mediaService.handleGenerateThumbnails(data),
-      [JobName.GENERATE_THUMBHASH]: (data) => this.mediaService.handleGenerateThumbhash(data),
       [JobName.QUEUE_VIDEO_CONVERSION]: (data) => this.mediaService.handleQueueVideoConversion(data),
       [JobName.VIDEO_CONVERSION]: (data) => this.mediaService.handleVideoConversion(data),
       [JobName.QUEUE_METADATA_EXTRACTION]: (data) => this.metadataService.handleQueueMetadataExtraction(data),

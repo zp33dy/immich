@@ -267,22 +267,25 @@ export class JobService {
       }
 
       case JobName.GENERATE_THUMBNAILS: {
-        const jobs: JobItem[] = [{ name: JobName.GENERATE_THUMBHASH, data: item.data }];
+        if (item.data.source !== 'upload') {
+          break;
+        }
 
-        if (item.data.source === 'upload') {
-          jobs.push({ name: JobName.SMART_SEARCH, data: item.data }, { name: JobName.FACE_DETECTION, data: item.data });
+        const jobs: JobItem[] = [
+          { name: JobName.SMART_SEARCH, data: item.data },
+          { name: JobName.FACE_DETECTION, data: item.data },
+        ];
 
-          const [asset] = await this.assetRepository.getByIdsWithAllRelations([item.data.id]);
-          if (asset) {
-            if (asset.type === AssetType.VIDEO) {
-              jobs.push({ name: JobName.VIDEO_CONVERSION, data: item.data });
-            } else if (asset.livePhotoVideoId) {
-              jobs.push({ name: JobName.VIDEO_CONVERSION, data: { id: asset.livePhotoVideoId } });
-            }
+        const [asset] = await this.assetRepository.getByIdsWithAllRelations([item.data.id]);
+        if (asset) {
+          if (asset.type === AssetType.VIDEO) {
+            jobs.push({ name: JobName.VIDEO_CONVERSION, data: item.data });
+          } else if (asset.livePhotoVideoId) {
+            jobs.push({ name: JobName.VIDEO_CONVERSION, data: { id: asset.livePhotoVideoId } });
+          }
 
-            if (asset.isVisible) {
-              this.eventRepository.clientSend(ClientEvent.UPLOAD_SUCCESS, asset.ownerId, mapAsset(asset));
-            }
+          if (asset.isVisible) {
+            this.eventRepository.clientSend(ClientEvent.UPLOAD_SUCCESS, asset.ownerId, mapAsset(asset));
           }
         }
 
