@@ -8,6 +8,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:immich_mobile/extensions/build_context_extensions.dart';
 import 'package:immich_mobile/providers/album/album.provider.dart';
 import 'package:immich_mobile/providers/album/shared_album.provider.dart';
+import 'package:immich_mobile/providers/asset_viewer/local_asset.provider.dart';
 import 'package:immich_mobile/providers/multiselect.provider.dart';
 import 'package:immich_mobile/widgets/memories/memory_lane.dart';
 import 'package:immich_mobile/providers/asset.provider.dart';
@@ -32,9 +33,10 @@ class PhotosPage extends HookConsumerWidget {
     useEffect(
       () {
         ref.read(websocketProvider.notifier).connect();
-        Future(() => ref.read(assetProvider.notifier).getAllAsset());
-        ref.read(albumProvider.notifier).getAllAlbums();
-        ref.read(sharedAlbumProvider.notifier).getAllSharedAlbums();
+        // Future(() => ref.read(assetProvider.notifier).getAllAsset());
+        // ref.read(albumProvider.notifier).getAllAlbums();
+        // ref.read(sharedAlbumProvider.notifier).getAllSharedAlbums();
+        ref.read(localAssetNotifierProvider.notifier).getLocalAsset();
         ref.read(serverInfoProvider.notifier).getServerInfo();
         return;
       },
@@ -82,16 +84,16 @@ class PhotosPage extends HookConsumerWidget {
     }
 
     Future<void> refreshAssets() async {
-      final fullRefresh = refreshCount.value > 0;
-      await ref.read(assetProvider.notifier).getAllAsset(clear: fullRefresh);
-      if (fullRefresh) {
-        // refresh was forced: user requested another refresh within 2 seconds
-        refreshCount.value = 0;
-      } else {
-        refreshCount.value++;
-        // set counter back to 0 if user does not request refresh again
-        Timer(const Duration(seconds: 4), () => refreshCount.value = 0);
-      }
+      // final fullRefresh = refreshCount.value > 0;
+      // await ref.read(assetProvider.notifier).getAllAsset(clear: fullRefresh);
+      // if (fullRefresh) {
+      //   // refresh was forced: user requested another refresh within 2 seconds
+      //   refreshCount.value = 0;
+      // } else {
+      //   refreshCount.value++;
+      //   // set counter back to 0 if user does not request refresh again
+      //   Timer(const Duration(seconds: 4), () => refreshCount.value = 0);
+      // }
     }
 
     return Stack(
