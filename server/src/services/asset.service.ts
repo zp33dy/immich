@@ -113,9 +113,9 @@ export class AssetService {
       id,
       {
         exifInfo: true,
-        tags: true,
         sharedLinks: true,
         smartInfo: true,
+        tags: true,
         owner: true,
         faces: {
           person: true,
@@ -298,6 +298,11 @@ export class AssetService {
 
     for (const id of dto.assetIds) {
       switch (dto.name) {
+        case AssetJobName.REFRESH_FACES: {
+          jobs.push({ name: JobName.FACE_DETECTION, data: { id } });
+          break;
+        }
+
         case AssetJobName.REFRESH_METADATA: {
           jobs.push({ name: JobName.METADATA_EXTRACTION, data: { id } });
           break;
