@@ -675,27 +675,6 @@ export class LibraryService {
       this.logger.debug(`No non-excluded assets found in any import path for library ${library.id}`);
     }
 
-    const onlineAssets = usePagination(JOBS_LIBRARY_PAGINATION_SIZE, (pagination) =>
-      this.assetRepository.getWith(pagination, WithProperty.IS_ONLINE, job.id),
-    );
-
-    let onlineAssetCount = 0;
-    for await (const assets of onlineAssets) {
-      onlineAssetCount += assets.length;
-      this.logger.debug(`Discovered ${onlineAssetCount} asset(s) in library ${library.id}...`);
-      await this.jobRepository.queueAll(
-        assets.map((asset) => ({
-          name: JobName.LIBRARY_CHECK_OFFLINE,
-          data: { id: asset.id, importPaths: validImportPaths, exclusionPatterns: library.exclusionPatterns },
-        })),
-      );
-      this.logger.debug(`Queued online check of ${assets.length} asset(s) in library ${library.id}...`);
-    }
-
-    if (onlineAssetCount) {
-      this.logger.log(`Finished queueing online check of ${onlineAssetCount} assets for library ${library.id}`);
-    }
-
     await this.repository.update({ id: job.id, refreshedAt: new Date() });
 
     return JobStatus.SUCCESS;
@@ -729,8 +708,6 @@ export class LibraryService {
     if (onlineAssetCount) {
       this.logger.log(`Finished queueing online check of ${onlineAssetCount} assets for library ${library.id}`);
     }
-
-    await this.repository.update({ id: job.id, refreshedAt: new Date() });
 
     return JobStatus.SUCCESS;
   }

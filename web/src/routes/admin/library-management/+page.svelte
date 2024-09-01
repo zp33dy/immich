@@ -319,6 +319,7 @@
             class="mb-4 flex h-12 w-full rounded-md border bg-gray-50 text-immich-primary dark:border-immich-dark-gray dark:bg-immich-dark-gray dark:text-immich-dark-primary"
           >
             <tr class="grid grid-cols-6 w-full place-items-center">
+              <th class="text-center text-sm font-medium">{$t('type')}</th>
               <th class="text-center text-sm font-medium">{$t('name')}</th>
               <th class="text-center text-sm font-medium">{$t('owner')}</th>
               <th class="text-center text-sm font-medium">{$t('assets')}</th>
@@ -335,6 +336,14 @@
                     : 'bg-immich-bg dark:bg-immich-dark-gray/50'
                 }`}
               >
+                <td class=" px-10 text-sm">
+                  <Icon
+                    path={mdiDatabase}
+                    size="40"
+                    title={$t('admin.external_library_created_at', { values: { date: library.createdAt } })}
+                  />
+                </td>
+
                 <td class=" text-ellipsis px-4 text-sm">{library.name}</td>
                 <td class=" text-ellipsis px-4 text-sm">
                   {#if owner[index] == undefined}

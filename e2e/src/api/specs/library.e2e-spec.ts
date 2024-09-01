@@ -368,6 +368,37 @@ describe('/libraries', () => {
       utils.removeImageFile(`${testAssetDir}/temp/directoryA/assetC.png`);
     });
 
+    it('should not offline a file missing from disk', async () => {
+      utils.createImageFile(`${testAssetDir}/temp/directoryA/assetC.png`);
+      const library = await utils.createLibrary(admin.accessToken, {
+        ownerId: admin.userId,
+        importPaths: [`${testAssetDirInternal}/temp`],
+      });
+
+      await scan(admin.accessToken, library.id);
+      await utils.waitForQueueFinish(admin.accessToken, 'library');
+
+      const { assets } = await utils.metadataSearch(admin.accessToken, { libraryId: library.id });
+      expect(assets.count).toBe(3);
+
+      utils.removeImageFile(`${testAssetDir}/temp/directoryA/assetC.png`);
+
+      await scan(admin.accessToken, library.id);
+      await utils.waitForQueueFinish(admin.accessToken, 'library');
+
+      const { assets: newAssets } = await utils.metadataSearch(admin.accessToken, { libraryId: library.id });
+      expect(newAssets.count).toBe(3);
+
+      expect(newAssets.items).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            isOffline: false,
+            originalFileName: 'assetC.png',
+          }),
+        ]),
+      );
+    });
+
     it('should scan new files', async () => {
       const library = await utils.createLibrary(admin.accessToken, {
         ownerId: admin.userId,
@@ -589,7 +620,7 @@ describe('/libraries', () => {
       );
     });
 
-    it('should not try to delete offline files', async () => {
+    it('should not delete offline files', async () => {
       utils.createImageFile(`${testAssetDir}/temp/offline1/assetA.png`);
 
       const library = await utils.createLibrary(admin.accessToken, {
@@ -645,7 +676,7 @@ describe('/libraries', () => {
       expect(body).toEqual(errorDto.unauthorized);
     });
 
-    it('should remove offline files', async () => {
+    it('should mark missing files as offline', async () => {
       const library = await utils.createLibrary(admin.accessToken, {
         ownerId: admin.userId,
         importPaths: [`${testAssetDirInternal}/temp/offline`],
@@ -664,7 +695,7 @@ describe('/libraries', () => {
 
       utils.removeImageFile(`${testAssetDir}/temp/offline/offline.png`);
 
-      await scan(admin.accessToken, library.id);
+      await scanRemoved(admin.accessToken, library.id);
       await utils.waitForQueueFinish(admin.accessToken, 'library');
 
       const { assets: offlineAssets } = await utils.metadataSearch(admin.accessToken, {
