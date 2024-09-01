@@ -67,14 +67,21 @@ export class LibraryController {
   @Post(':id/scan')
   @HttpCode(HttpStatus.NO_CONTENT)
   @Authenticated({ admin: true })
-  scanLibrary(@Param() { id }: UUIDParamDto, @Body() dto: ScanLibraryDto) {
-    return this.service.queueScan(id, dto);
+  scanNewAssets(@Param() { id }: UUIDParamDto, @Body() dto: ScanLibraryDto) {
+    return this.service.queueScanNew(id, dto);
+  }
+
+  @Post(':id/scanRemoved')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @Authenticated({ admin: true })
+  scanRemovedAssets(@Param() { id }: UUIDParamDto) {
+    return this.service.queueScanRemoved(id);
   }
 
   @Post(':id/removeOffline')
   @HttpCode(HttpStatus.NO_CONTENT)
   @Authenticated({ admin: true })
-  removeOfflineFiles(@Param() { id }: UUIDParamDto) {
+  removeOfflineAssets(@Param() { id }: UUIDParamDto) {
     return this.service.queueRemoveOffline(id);
   }
 }

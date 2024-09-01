@@ -80,7 +80,8 @@ export const JOBS_TO_QUEUE: Record<JobName, QueueName> = {
 
   // Library management
   [JobName.LIBRARY_SCAN_ASSET]: QueueName.LIBRARY,
-  [JobName.LIBRARY_SCAN]: QueueName.LIBRARY,
+  [JobName.LIBRARY_SCAN_NEW]: QueueName.LIBRARY,
+  [JobName.LIBRARY_SCAN_REMOVED]: QueueName.LIBRARY,
   [JobName.LIBRARY_DELETE]: QueueName.LIBRARY,
   [JobName.LIBRARY_CHECK_OFFLINE]: QueueName.LIBRARY,
   [JobName.LIBRARY_REMOVE_OFFLINE]: QueueName.LIBRARY,

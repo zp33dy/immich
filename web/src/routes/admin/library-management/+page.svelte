@@ -20,8 +20,9 @@
     getAllLibraries,
     getLibraryStatistics,
     getUserAdmin,
-    removeOfflineFiles,
-    scanLibrary,
+    removeOfflineAssets,
+    scanNewAssets,
+    scanRemovedAssets,
     updateLibrary,
     type LibraryResponseDto,
     type LibraryStatsResponseDto,
@@ -122,7 +123,7 @@
   const handleScanAll = async () => {
     try {
       for (const library of libraries) {
-        await scanLibrary({ id: library.id, scanLibraryDto: {} });
+        await scanNewAssets({ id: library.id, scanLibraryDto: {} });
       }
       notificationController.show({
         message: $t('admin.refreshing_all_libraries'),
@@ -133,9 +134,9 @@
     }
   };
 
-  const handleScan = async (libraryId: string) => {
+  const handleScanNew = async (libraryId: string) => {
     try {
-      await scanLibrary({ id: libraryId, scanLibraryDto: {} });
+      await scanNewAssets({ id: libraryId, scanLibraryDto: {} });
       notificationController.show({
         message: $t('admin.scanning_library_for_new_files'),
         type: NotificationType.Info,
@@ -145,9 +146,21 @@
     }
   };
 
-  const handleScanChanges = async (libraryId: string) => {
+  const handleScanRemoved = async (libraryId: string) => {
     try {
-      await scanLibrary({ id: libraryId, scanLibraryDto: { refreshModifiedFiles: true } });
+      await scanRemovedAssets({ id: libraryId });
+      notificationController.show({
+        message: $t('admin.scanning_library_for_removed_files'),
+        type: NotificationType.Info,
+      });
+    } catch (error) {
+      handleError(error, $t('errors.unable_to_scan_library'));
+    }
+  };
+
+  const handleScanModifiedFiles = async (libraryId: string) => {
+    try {
+      await scanNewAssets({ id: libraryId, scanLibraryDto: { refreshModifiedFiles: true } });
       notificationController.show({
         message: $t('admin.scanning_library_for_changed_files'),
         type: NotificationType.Info,
@@ -159,7 +172,7 @@
 
   const handleForceScan = async (libraryId: string) => {
     try {
-      await scanLibrary({ id: libraryId, scanLibraryDto: { refreshAllFiles: true } });
+      await scanNewAssets({ id: libraryId, scanLibraryDto: { refreshAllFiles: true } });
       notificationController.show({
         message: $t('admin.forcing_refresh_library_files'),
         type: NotificationType.Info,
@@ -171,7 +184,7 @@
 
   const handleRemoveOffline = async (libraryId: string) => {
     try {
-      await removeOfflineFiles({ id: libraryId });
+      await removeOfflineAssets({ id: libraryId });
       notificationController.show({
         message: $t('admin.removing_offline_files'),
         type: NotificationType.Info,
@@ -197,7 +210,15 @@
     closeAll();
 
     if (library) {
-      await handleScan(library.id);
+      await handleScanNew(library.id);
+    }
+  };
+
+  const onScanRemovedLibraryClicked = async (library: LibraryResponseDto) => {
+    closeAll();
+
+    if (library) {
+      await handleScanRemoved(library.id);
     }
   };
 
@@ -210,7 +231,7 @@
   const onScanAllLibraryFilesClicked = async (library: LibraryResponseDto) => {
     closeAll();
     if (library) {
-      await handleScanChanges(library.id);
+      await handleScanModifiedFiles(library.id);
     }
   };
 
@@ -298,7 +319,6 @@
             class="mb-4 flex h-12 w-full rounded-md border bg-gray-50 text-immich-primary dark:border-immich-dark-gray dark:bg-immich-dark-gray dark:text-immich-dark-primary"
           >
             <tr class="grid grid-cols-6 w-full place-items-center">
-              <th class="text-center text-sm font-medium">{$t('type')}</th>
               <th class="text-center text-sm font-medium">{$t('name')}</th>
               <th class="text-center text-sm font-medium">{$t('owner')}</th>
               <th class="text-center text-sm font-medium">{$t('assets')}</th>
@@ -315,14 +335,6 @@
                     : 'bg-immich-bg dark:bg-immich-dark-gray/50'
                 }`}
               >
-                <td class=" px-10 text-sm">
-                  <Icon
-                    path={mdiDatabase}
-                    size="40"
-                    title={$t('admin.external_library_created_at', { values: { date: library.createdAt } })}
-                  />
-                </td>
-
                 <td class=" text-ellipsis px-4 text-sm">{library.name}</td>
                 <td class=" text-ellipsis px-4 text-sm">
                   {#if owner[index] == undefined}
@@ -359,6 +371,10 @@
                     <MenuOption onClick={() => onScanSettingClicked(index)} text={$t('scan_settings')} />
                     <hr />
                     <MenuOption onClick={() => onScanNewLibraryClicked(library)} text={$t('scan_new_library_files')} />
+                    <MenuOption
+                      onClick={() => onScanRemovedLibraryClicked(library)}
+                      text={$t('scan_removed_library_files')}
+                    />
                     <MenuOption
                       onClick={() => onScanAllLibraryFilesClicked(library)}
                       text={$t('scan_all_library_files')}

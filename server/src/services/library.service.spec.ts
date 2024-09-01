@@ -296,6 +296,46 @@ describe(LibraryService.name, () => {
     });
   });
 
+  describe('handleQueueScanRemoved', () => {
+    it('should queue offline check of existing online assets', async () => {
+      const mockLibraryJob: ILibraryRefreshJob = {
+        id: libraryStub.externalLibrary1.id,
+        refreshModifiedFiles: false,
+        refreshAllFiles: false,
+      };
+
+      assetMock.getWith.mockResolvedValue({ items: [], hasNextPage: false });
+      libraryMock.get.mockResolvedValue(libraryStub.externalLibrary1);
+      storageMock.walk.mockImplementation(async function* generator() {});
+      assetMock.getWith.mockResolvedValue({ items: [assetStub.external], hasNextPage: false });
+
+      await sut.handleQueueScanRemoved(mockLibraryJob);
+
+      expect(jobMock.queueAll).toHaveBeenCalledWith([
+        {
+          name: JobName.LIBRARY_CHECK_OFFLINE,
+          data: {
+            id: assetStub.external.id,
+            importPaths: libraryStub.externalLibrary1.importPaths,
+            exclusionPatterns: [],
+          },
+        },
+      ]);
+    });
+
+    it("should fail when library can't be found", async () => {
+      const mockLibraryJob: ILibraryRefreshJob = {
+        id: libraryStub.externalLibrary1.id,
+        refreshModifiedFiles: false,
+        refreshAllFiles: false,
+      };
+
+      libraryMock.get.mockResolvedValue(null);
+
+      await expect(sut.handleQueueScanRemoved(mockLibraryJob)).resolves.toBe(JobStatus.SKIPPED);
+    });
+  });
+
   describe('handleOfflineCheck', () => {
     it('should skip missing assets', async () => {
       const mockAssetJob: ILibraryOfflineJob = {
@@ -306,7 +346,7 @@ describe(LibraryService.name, () => {
 
       assetMock.getById.mockResolvedValue(null);
 
-      await expect(sut.handleOfflineCheck(mockAssetJob)).resolves.toBe(JobStatus.SKIPPED);
+      await expect(sut.handleCheckAssetOnlineStatus(mockAssetJob)).resolves.toBe(JobStatus.SKIPPED);
 
       expect(assetMock.update).not.toHaveBeenCalled();
     });
@@ -320,7 +360,7 @@ describe(LibraryService.name, () => {
 
       assetMock.getById.mockResolvedValue(assetStub.offline);
 
-      await expect(sut.handleOfflineCheck(mockAssetJob)).resolves.toBe(JobStatus.SUCCESS);
+      await expect(sut.handleCheckAssetOnlineStatus(mockAssetJob)).resolves.toBe(JobStatus.SUCCESS);
 
       expect(assetMock.update).not.toHaveBeenCalled();
     });
@@ -334,7 +374,7 @@ describe(LibraryService.name, () => {
 
       assetMock.getById.mockResolvedValue(assetStub.external);
 
-      await expect(sut.handleOfflineCheck(mockAssetJob)).resolves.toBe(JobStatus.SUCCESS);
+      await expect(sut.handleCheckAssetOnlineStatus(mockAssetJob)).resolves.toBe(JobStatus.SUCCESS);
 
       expect(assetMock.update).toHaveBeenCalledWith({ id: assetStub.external.id, isOffline: true });
     });
@@ -348,7 +388,7 @@ describe(LibraryService.name, () => {
 
       assetMock.getById.mockResolvedValue(assetStub.external);
 
-      await expect(sut.handleOfflineCheck(mockAssetJob)).resolves.toBe(JobStatus.SUCCESS);
+      await expect(sut.handleCheckAssetOnlineStatus(mockAssetJob)).resolves.toBe(JobStatus.SUCCESS);
 
       expect(assetMock.update).toHaveBeenCalledWith({ id: assetStub.external.id, isOffline: true });
     });
@@ -363,7 +403,7 @@ describe(LibraryService.name, () => {
       assetMock.getById.mockResolvedValue(assetStub.external);
       storageMock.checkFileExists.mockResolvedValue(true);
 
-      await expect(sut.handleOfflineCheck(mockAssetJob)).resolves.toBe(JobStatus.SUCCESS);
+      await expect(sut.handleCheckAssetOnlineStatus(mockAssetJob)).resolves.toBe(JobStatus.SUCCESS);
 
       expect(assetMock.update).toHaveBeenCalledWith({ id: assetStub.external.id, isOffline: true });
     });
@@ -378,7 +418,7 @@ describe(LibraryService.name, () => {
       assetMock.getById.mockResolvedValue(assetStub.external);
       storageMock.checkFileExists.mockResolvedValue(true);
 
-      await expect(sut.handleOfflineCheck(mockAssetJob)).resolves.toBe(JobStatus.SUCCESS);
+      await expect(sut.handleCheckAssetOnlineStatus(mockAssetJob)).resolves.toBe(JobStatus.SUCCESS);
 
       expect(assetMock.update).not.toHaveBeenCalled();
     });
@@ -1235,12 +1275,12 @@ describe(LibraryService.name, () => {
     it('should queue a library scan of external library', async () => {
       libraryMock.get.mockResolvedValue(libraryStub.externalLibrary1);
 
-      await sut.queueScan(libraryStub.externalLibrary1.id, {});
+      await sut.queueScanNew(libraryStub.externalLibrary1.id, {});
 
       expect(jobMock.queue.mock.calls).toEqual([
         [
           {
-            name: JobName.LIBRARY_SCAN,
+            name: JobName.LIBRARY_SCAN_NEW,
             data: {
               id: libraryStub.externalLibrary1.id,
               refreshModifiedFiles: false,
@@ -1254,12 +1294,12 @@ describe(LibraryService.name, () => {
     it('should queue a library scan of all modified assets', async () => {
       libraryMock.get.mockResolvedValue(libraryStub.externalLibrary1);
 
-      await sut.queueScan(libraryStub.externalLibrary1.id, { refreshModifiedFiles: true });
+      await sut.queueScanNew(libraryStub.externalLibrary1.id, { refreshModifiedFiles: true });
 
       expect(jobMock.queue.mock.calls).toEqual([
         [
           {
-            name: JobName.LIBRARY_SCAN,
+            name: JobName.LIBRARY_SCAN_NEW,
             data: {
               id: libraryStub.externalLibrary1.id,
               refreshModifiedFiles: true,
@@ -1273,12 +1313,12 @@ describe(LibraryService.name, () => {
     it('should queue a forced library scan', async () => {
       libraryMock.get.mockResolvedValue(libraryStub.externalLibrary1);
 
-      await sut.queueScan(libraryStub.externalLibrary1.id, { refreshAllFiles: true });
+      await sut.queueScanNew(libraryStub.externalLibrary1.id, { refreshAllFiles: true });
 
       expect(jobMock.queue.mock.calls).toEqual([
         [
           {
-            name: JobName.LIBRARY_SCAN,
+            name: JobName.LIBRARY_SCAN_NEW,
             data: {
               id: libraryStub.externalLibrary1.id,
               refreshModifiedFiles: false,
@@ -1323,7 +1363,7 @@ describe(LibraryService.name, () => {
       ]);
       expect(jobMock.queueAll).toHaveBeenCalledWith([
         {
-          name: JobName.LIBRARY_SCAN,
+          name: JobName.LIBRARY_SCAN_NEW,
           data: {
             id: libraryStub.externalLibrary1.id,
             refreshModifiedFiles: true,
@@ -1345,7 +1385,7 @@ describe(LibraryService.name, () => {
 
       expect(jobMock.queueAll).toHaveBeenCalledWith([
         {
-          name: JobName.LIBRARY_SCAN,
+          name: JobName.LIBRARY_SCAN_NEW,
           data: {
             id: libraryStub.externalLibrary1.id,
             refreshModifiedFiles: false,

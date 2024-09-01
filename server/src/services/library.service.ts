@@ -499,15 +499,26 @@ export class LibraryService {
     return JobStatus.SUCCESS;
   }
 
-  async queueScan(id: string, dto: ScanLibraryDto) {
+  async queueScanNew(id: string, dto: ScanLibraryDto) {
     await this.findOrFail(id);
 
     await this.jobRepository.queue({
-      name: JobName.LIBRARY_SCAN,
+      name: JobName.LIBRARY_SCAN_NEW,
       data: {
         id,
         refreshModifiedFiles: dto.refreshModifiedFiles ?? false,
         refreshAllFiles: dto.refreshAllFiles ?? false,
+      },
+    });
+  }
+
+  async queueScanRemoved(id: string) {
+    await this.findOrFail(id);
+
+    await this.jobRepository.queue({
+      name: JobName.LIBRARY_SCAN_REMOVED,
+      data: {
+        id,
       },
     });
   }
@@ -525,7 +536,7 @@ export class LibraryService {
     const libraries = await this.repository.getAll(true);
     await this.jobRepository.queueAll(
       libraries.map((library) => ({
-        name: JobName.LIBRARY_SCAN,
+        name: JobName.LIBRARY_SCAN_NEW,
         data: {
           id: library.id,
           refreshModifiedFiles: !job.force,
@@ -533,10 +544,18 @@ export class LibraryService {
         },
       })),
     );
+    await this.jobRepository.queueAll(
+      libraries.map((library) => ({
+        name: JobName.LIBRARY_SCAN_REMOVED,
+        data: {
+          id: library.id,
+        },
+      })),
+    );
     return JobStatus.SUCCESS;
   }
 
-  async handleOfflineCheck(job: ILibraryOfflineJob): Promise<JobStatus> {
+  async handleCheckAssetOnlineStatus(job: ILibraryOfflineJob): Promise<JobStatus> {
     const asset = await this.assetRepository.getById(job.id);
 
     if (!asset) {
@@ -617,7 +636,7 @@ export class LibraryService {
       return JobStatus.SKIPPED;
     }
 
-    this.logger.log(`Refreshing library ${library.id}`);
+    this.logger.log(`Refreshing library ${library.id} for new assets`);
 
     const validImportPaths: string[] = [];
 
@@ -668,6 +687,40 @@ export class LibraryService {
         assets.map((asset) => ({
           name: JobName.LIBRARY_CHECK_OFFLINE,
           data: { id: asset.id, importPaths: validImportPaths, exclusionPatterns: library.exclusionPatterns },
+        })),
+      );
+      this.logger.debug(`Queued online check of ${assets.length} asset(s) in library ${library.id}...`);
+    }
+
+    if (onlineAssetCount) {
+      this.logger.log(`Finished queueing online check of ${onlineAssetCount} assets for library ${library.id}`);
+    }
+
+    await this.repository.update({ id: job.id, refreshedAt: new Date() });
+
+    return JobStatus.SUCCESS;
+  }
+
+  async handleQueueScanRemoved(job: IEntityJob): Promise<JobStatus> {
+    const library = await this.repository.get(job.id);
+    if (!library) {
+      return JobStatus.SKIPPED;
+    }
+
+    this.logger.log(`Scanning library ${library.id} for removed assets`);
+
+    const onlineAssets = usePagination(JOBS_LIBRARY_PAGINATION_SIZE, (pagination) =>
+      this.assetRepository.getWith(pagination, WithProperty.IS_ONLINE, job.id),
+    );
+
+    let onlineAssetCount = 0;
+    for await (const assets of onlineAssets) {
+      onlineAssetCount += assets.length;
+      this.logger.debug(`Discovered ${onlineAssetCount} asset(s) in library ${library.id}...`);
+      await this.jobRepository.queueAll(
+        assets.map((asset) => ({
+          name: JobName.LIBRARY_CHECK_OFFLINE,
+          data: { id: asset.id, importPaths: library.importPaths, exclusionPatterns: library.exclusionPatterns },
         })),
       );
       this.logger.debug(`Queued online check of ${assets.length} asset(s) in library ${library.id}...`);

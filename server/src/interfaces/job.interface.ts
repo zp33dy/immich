@@ -76,7 +76,8 @@ export enum JobName {
   FACIAL_RECOGNITION = 'facial-recognition',
 
   // library management
-  LIBRARY_SCAN = 'library-refresh',
+  LIBRARY_SCAN_NEW = 'library-scan-new',
+  LIBRARY_SCAN_REMOVED = 'library-scan-removed',
   LIBRARY_SCAN_ASSET = 'library-refresh-asset',
   LIBRARY_REMOVE_OFFLINE = 'library-remove-offline',
   LIBRARY_CHECK_OFFLINE = 'library-check-offline',
@@ -278,7 +279,8 @@ export type JobItem =
 
   // Library Management
   | { name: JobName.LIBRARY_SCAN_ASSET; data: ILibraryFileJob }
-  | { name: JobName.LIBRARY_SCAN; data: ILibraryRefreshJob }
+  | { name: JobName.LIBRARY_SCAN_NEW; data: ILibraryRefreshJob }
+  | { name: JobName.LIBRARY_SCAN_REMOVED; data: IEntityJob }
   | { name: JobName.LIBRARY_REMOVE_OFFLINE; data: IEntityJob }
   | { name: JobName.LIBRARY_DELETE; data: IEntityJob }
   | { name: JobName.LIBRARY_QUEUE_SCAN_ALL; data: IBaseJob }
