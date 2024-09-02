@@ -488,7 +488,7 @@ export class LibraryService {
       await this.jobRepository.queue({ name: JobName.LIBRARY_QUEUE_REMOVE_DELETED, data: { id } });
     } else {
       await this.jobRepository.queue({
-        name: JobName.LIBRARY_SCAN_NEW,
+        name: JobName.LIBRARY_QUEUE_SCAN,
         data: {
           id,
           refreshModifiedFiles: dto.refreshModifiedFiles ?? false,
@@ -511,7 +511,7 @@ export class LibraryService {
     const libraries = await this.repository.getAll(true);
     await this.jobRepository.queueAll(
       libraries.map((library) => ({
-        name: JobName.LIBRARY_SCAN_NEW,
+        name: JobName.LIBRARY_QUEUE_SCAN,
         data: {
           id: library.id,
           refreshModifiedFiles: !job.force,

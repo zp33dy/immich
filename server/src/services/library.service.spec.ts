@@ -1175,7 +1175,7 @@ describe(LibraryService.name, () => {
       expect(jobMock.queue.mock.calls).toEqual([
         [
           {
-            name: JobName.LIBRARY_SCAN_NEW,
+            name: JobName.LIBRARY_QUEUE_SCAN,
             data: {
               id: libraryStub.externalLibrary1.id,
               refreshModifiedFiles: false,
@@ -1194,7 +1194,7 @@ describe(LibraryService.name, () => {
       expect(jobMock.queue.mock.calls).toEqual([
         [
           {
-            name: JobName.LIBRARY_SCAN_NEW,
+            name: JobName.LIBRARY_QUEUE_SCAN,
             data: {
               id: libraryStub.externalLibrary1.id,
               refreshModifiedFiles: true,
@@ -1213,7 +1213,7 @@ describe(LibraryService.name, () => {
       expect(jobMock.queue.mock.calls).toEqual([
         [
           {
-            name: JobName.LIBRARY_SCAN_NEW,
+            name: JobName.LIBRARY_QUEUE_SCAN,
             data: {
               id: libraryStub.externalLibrary1.id,
               refreshModifiedFiles: false,
@@ -1258,7 +1258,7 @@ describe(LibraryService.name, () => {
       ]);
       expect(jobMock.queueAll).toHaveBeenCalledWith([
         {
-          name: JobName.LIBRARY_SCAN_NEW,
+          name: JobName.LIBRARY_QUEUE_SCAN,
           data: {
             id: libraryStub.externalLibrary1.id,
             refreshModifiedFiles: true,
@@ -1280,7 +1280,7 @@ describe(LibraryService.name, () => {
 
       expect(jobMock.queueAll).toHaveBeenCalledWith([
         {
-          name: JobName.LIBRARY_SCAN_NEW,
+          name: JobName.LIBRARY_QUEUE_SCAN,
           data: {
             id: libraryStub.externalLibrary1.id,
             refreshModifiedFiles: false,
