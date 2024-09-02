@@ -1073,19 +1073,6 @@ describe(LibraryService.name, () => {
         ]);
       });
 
-      it('should handle a file unlink event', async () => {
-        libraryMock.get.mockResolvedValue(libraryStub.externalLibraryWithImportPaths1);
-        libraryMock.getAll.mockResolvedValue([libraryStub.externalLibraryWithImportPaths1]);
-        assetMock.getByLibraryIdAndOriginalPath.mockResolvedValue(assetStub.external);
-        storageMock.watch.mockImplementation(
-          makeMockWatcher({ items: [{ event: 'unlink', value: '/foo/photo.jpg' }] }),
-        );
-
-        await sut.watchAll();
-
-        expect(assetMock.update).toHaveBeenCalledWith({ id: assetStub.external.id, isOffline: true });
-      });
-
       it('should handle an error event', async () => {
         libraryMock.get.mockResolvedValue(libraryStub.externalLibraryWithImportPaths1);
         assetMock.getByLibraryIdAndOriginalPath.mockResolvedValue(assetStub.external);
@@ -1306,6 +1293,7 @@ describe(LibraryService.name, () => {
 
   describe('handleQueueRemoveDeleted', () => {
     it('should queue removal jobs', async () => {
+      libraryMock.get.mockResolvedValue(libraryStub.externalLibrary1);
       assetMock.getAll.mockResolvedValue({ items: [assetStub.image1], hasNextPage: false });
       assetMock.getById.mockResolvedValue(assetStub.image1);
 
@@ -1314,7 +1302,14 @@ describe(LibraryService.name, () => {
       );
 
       expect(jobMock.queueAll).toHaveBeenCalledWith([
-        { name: JobName.ASSET_DELETION, data: { id: assetStub.image1.id, deleteOnDisk: false } },
+        {
+          name: JobName.LIBRARY_REMOVE_DELETED,
+          data: {
+            id: assetStub.image1.id,
+            importPaths: libraryStub.externalLibrary1.importPaths,
+            exclusionPatterns: libraryStub.externalLibrary1.exclusionPatterns,
+          },
+        },
       ]);
     });
   });

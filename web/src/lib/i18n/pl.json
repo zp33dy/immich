@@ -202,7 +202,7 @@
     "refreshing_all_libraries": "Wszystkie biblioteki zostaną odświeżone",
     "registration": "Rejestracja Administratora",
     "registration_description": "Jesteś pierwszym użytkownikiem aplikacji, więc twoje konto jest administratorem. Możesz zarządzać platformą, w tym dodawać nowych użytkowników.",
-    "removing_offline_files": "Niedostępne pliki zostaną usunięte",
+    "removing_deleted_files": "Niedostępne pliki zostaną usunięte",
     "repair_all": "Napraw Wszystko",
     "repair_matched_items": "Powiązano {count, plural, one {# element} few {# elementy} other {# elementów}}",
     "repaired_items": "Naprawiono {count, plural, one {# element} few {# elementy} other {# elementów}}",

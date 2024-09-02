@@ -204,7 +204,7 @@
     "refreshing_all_libraries": "Refreshing all libraries",
     "registration": "Admin Registration",
     "registration_description": "Since you are the first user on the system, you will be assigned as the Admin and are responsible for administrative tasks, and additional users will be created by you.",
-    "removing_offline_files": "Removing Offline Files",
+    "removing_deleted_files": "Removing Deleted Files",
     "repair_all": "Repair All",
     "repair_matched_items": "Matched {count, plural, one {# item} other {# items}}",
     "repaired_items": "Repaired {count, plural, one {# item} other {# items}}",

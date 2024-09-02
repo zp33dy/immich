@@ -198,7 +198,7 @@
     "refreshing_all_libraries": "Oppdaterer alle biblioteker",
     "registration": "Administrator registrering",
     "registration_description": "Siden du er den første brukeren på systemet, vil du bli utnevnt til administrator og ha ansvar for administrative oppgaver. Du vil også opprette eventuelle nye brukere.",
-    "removing_offline_files": "Fjerner frakoblede filer",
+    "removing_deleted_files": "Fjerner frakoblede filer",
     "repair_all": "Reparer alle",
     "repair_matched_items": "Samsvarte med {count, plural, one {# element} other {# elementer}}",
     "repaired_items": "Reparerte {count, plural, one {# item} other {# items}}",

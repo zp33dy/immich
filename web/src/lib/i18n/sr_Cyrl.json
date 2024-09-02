@@ -202,7 +202,7 @@
     "refreshing_all_libraries": "Освежавање свих библиотека",
     "registration": "Регистрација администратора",
     "registration_description": "Пошто сте први корисник на систему, бићете додељени као Админ и одговорни сте за административне задатке, а додатне кориснике ћете креирати ви.",
-    "removing_offline_files": "Уклањање ванмрежних датотека",
+    "removing_deleted_files": "Уклањање ванмрежних датотека",
     "repair_all": "Поправи све",
     "repair_matched_items": "Поклапа се са {count, plural, one {1 ставком} few {# ставке} other {# ставки}}",
     "repaired_items": "{count, plural, one {Поправљена 1 ставка} few {Поправљене # ставке} other {Поправљене # ставки}}",

@@ -202,7 +202,7 @@
     "refreshing_all_libraries": "刷新所有图库",
     "registration": "注册管理员",
     "registration_description": "由于您是系统上的第一个用户，您将被指定为管理员并负责管理任务，由您来创建新的用户。",
-    "removing_offline_files": "移除离线文件",
+    "removing_deleted_files": "移除离线文件",
     "repair_all": "修复所有",
     "repair_matched_items": "匹配到 {count, plural, one {#个项目} other {#个项目}}",
     "repaired_items": "已修复{count, plural, one {#个项目} other {#个项目}}",

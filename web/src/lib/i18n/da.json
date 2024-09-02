@@ -202,7 +202,7 @@
     "refreshing_all_libraries": "Opdaterer alle biblioteker",
     "registration": "Administratorregistrering",
     "registration_description": "Da du er den første bruger i systemet, får du tildelt rollen som administrator og ansvar for administration og oprettelsen af nye brugere.",
-    "removing_offline_files": "Fjerner offline-filer",
+    "removing_deleted_files": "Fjerner offline-filer",
     "repair_all": "Reparér alle",
     "repair_matched_items": "Har parret {count, plural, one {# element} other {# elementer}}",
     "repaired_items": "Reparerede {count, plural, one {# element} other {# elementer}}",

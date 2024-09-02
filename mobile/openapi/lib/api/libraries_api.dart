@@ -243,6 +243,46 @@ class LibrariesApi {
     return null;
   }
 
+  /// Performs an HTTP 'POST /libraries/{id}/removeDeleted' operation and returns the [Response].
+  /// Parameters:
+  ///
+  /// * [String] id (required):
+  Future<Response> removeDeletedAssetsWithHttpInfo(String id,) async {
+    // ignore: prefer_const_declarations
+    final path = r'/libraries/{id}/removeDeleted'
+      .replaceAll('{id}', id);
+
+    // ignore: prefer_final_locals
+    Object? postBody;
+
+    final queryParams = <QueryParam>[];
+    final headerParams = <String, String>{};
+    final formParams = <String, String>{};
+
+    const contentTypes = <String>[];
+
+
+    return apiClient.invokeAPI(
+      path,
+      'POST',
+      queryParams,
+      postBody,
+      headerParams,
+      formParams,
+      contentTypes.isEmpty ? null : contentTypes.first,
+    );
+  }
+
+  /// Parameters:
+  ///
+  /// * [String] id (required):
+  Future<void> removeDeletedAssets(String id,) async {
+    final response = await removeDeletedAssetsWithHttpInfo(id,);
+    if (response.statusCode >= HttpStatus.badRequest) {
+      throw ApiException(response.statusCode, await _decodeBodyBytes(response));
+    }
+  }
+
   /// Performs an HTTP 'POST /libraries/{id}/scan' operation and returns the [Response].
   /// Parameters:
   ///
@@ -282,46 +322,6 @@ class LibrariesApi {
   /// * [ScanLibraryDto] scanLibraryDto (required):
   Future<void> scanNewAssets(String id, ScanLibraryDto scanLibraryDto,) async {
     final response = await scanNewAssetsWithHttpInfo(id, scanLibraryDto,);
-    if (response.statusCode >= HttpStatus.badRequest) {
-      throw ApiException(response.statusCode, await _decodeBodyBytes(response));
-    }
-  }
-
-  /// Performs an HTTP 'POST /libraries/{id}/removeDeleted' operation and returns the [Response].
-  /// Parameters:
-  ///
-  /// * [String] id (required):
-  Future<Response> scanRemovedAssetsWithHttpInfo(String id,) async {
-    // ignore: prefer_const_declarations
-    final path = r'/libraries/{id}/removeDeleted'
-      .replaceAll('{id}', id);
-
-    // ignore: prefer_final_locals
-    Object? postBody;
-
-    final queryParams = <QueryParam>[];
-    final headerParams = <String, String>{};
-    final formParams = <String, String>{};
-
-    const contentTypes = <String>[];
-
-
-    return apiClient.invokeAPI(
-      path,
-      'POST',
-      queryParams,
-      postBody,
-      headerParams,
-      formParams,
-      contentTypes.isEmpty ? null : contentTypes.first,
-    );
-  }
-
-  /// Parameters:
-  ///
-  /// * [String] id (required):
-  Future<void> scanRemovedAssets(String id,) async {
-    final response = await scanRemovedAssetsWithHttpInfo(id,);
     if (response.statusCode >= HttpStatus.badRequest) {
       throw ApiException(response.statusCode, await _decodeBodyBytes(response));
     }

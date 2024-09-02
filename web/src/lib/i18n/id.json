@@ -200,7 +200,7 @@
     "refreshing_all_libraries": "Menyegarkan semua pustaka",
     "registration": "Pendaftaran Admin",
     "registration_description": "Karena Anda merupakan pengguna pertama dalam sistem, Anda akan ditetapkan sebagai Admin dan bertanggung jawab atas tugas administratif dan pengguna tambahan akan dibuat oleh Anda.",
-    "removing_offline_files": "Menghapus Berkas Luring",
+    "removing_deleted_files": "Menghapus Berkas Luring",
     "repair_all": "Perbaiki Semua",
     "repair_matched_items": "{count, plural, one {# item} other {# item}} dicocokkan",
     "repaired_items": "{count, plural, one {# item} other {# item}} diperbaiki",

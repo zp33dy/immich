@@ -198,7 +198,7 @@
     "refreshing_all_libraries": "すべてのライブラリを更新",
     "registration": "管理者登録",
     "registration_description": "あなたはシステムの最初のユーザーであるため、管理者として割り当てられ、管理タスクを担当し、追加のユーザーはあなたによって作成されます。",
-    "removing_offline_files": "オフライン ファイルを削除します",
+    "removing_deleted_files": "オフライン ファイルを削除します",
     "repair_all": "すべてを修復",
     "repair_matched_items": "一致: {count, plural, one {#件} other {#件}}",
     "repaired_items": "修復済み: {count, plural, one {#件} other {#件}}",

@@ -198,7 +198,7 @@
     "refreshing_all_libraries": "تحديث كافة المكتبات",
     "registration": "تسجيل المدير",
     "registration_description": "بما أنك أول مستخدم في النظام، سيتم تعيينك كمسؤول وستكون مسؤولًا عن المهام الإدارية، وسيتم إنشاء مستخدمين إضافيين بواسطتك.",
-    "removing_offline_files": "إزالة الملفات غير المتصلة",
+    "removing_deleted_files": "إزالة الملفات غير المتصلة",
     "repair_all": "إصلاح الكل",
     "repair_matched_items": "تمت مطابقة {count, plural, one {# عنصر} other {# عناصر}}",
     "repaired_items": "تم إصلاح {count, plural, one {# عنصر} other {# عناصر}}",

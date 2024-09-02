@@ -202,7 +202,7 @@
     "refreshing_all_libraries": "Obnovení všech knihoven",
     "registration": "Registrace správce",
     "registration_description": "Vzhledem k tomu, že jste prvním uživatelem v systému, budete přiřazen jako správce a budete zodpovědný za úkoly správy a další uživatelé budou vytvořeni vámi.",
-    "removing_offline_files": "Odstranění offline souborů",
+    "removing_deleted_files": "Odstranění offline souborů",
     "repair_all": "Opravit vše",
     "repair_matched_items": "Shoda {count, plural, one {# položky} other {# položek}}",
     "repaired_items": "{count, plural, one {Opravena # položka} few {Opraveny # položky} other {Opraveno # položek}}",

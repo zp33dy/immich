@@ -202,7 +202,7 @@
     "refreshing_all_libraries": "Aggiorna tutte le librerie",
     "registration": "Registrazione amministratore",
     "registration_description": "Poiché sei il primo utente del sistema, sarai assegnato come Amministratore e sarai responsabile dei task amministrativi, e utenti aggiuntivi saranno creati da te.",
-    "removing_offline_files": "Cancella File Offline",
+    "removing_deleted_files": "Cancella File Offline",
     "repair_all": "Ripara Tutto",
     "repair_matched_items": "{count, plural, one {Rilevato # elemento} other {Rilevati # elementi}}",
     "repaired_items": "{count, plural, one {Riparato # elemento} other {Riparati # elementi}}",

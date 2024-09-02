@@ -199,7 +199,7 @@
     "refreshing_all_libraries": "Atualizando todas as bibliotecas",
     "registration": "Registo de Admin",
     "registration_description": "Como é o primeiro utilizador no sistema, será marcado como administrador, e será responsável pelas tarefas administrativas, sendo que utilizadores adicionais serão criados por si.",
-    "removing_offline_files": "Removendo arquivos offline",
+    "removing_deleted_files": "Removendo arquivos offline",
     "repair_all": "Reparar tudo",
     "repair_matched_items": "Encontrado {count, plural, one {# item} other {# itens}}",
     "repaired_items": "Reparado {count, plural, one {# item} other {# itens}}",

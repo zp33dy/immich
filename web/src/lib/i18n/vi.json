@@ -202,7 +202,7 @@
     "refreshing_all_libraries": "Làm mới tất cả các thư viện",
     "registration": "Đăng ký Quản trị viên",
     "registration_description": "Vì bạn là người dùng đầu tiên, bạn sẽ trở thành Quản trị viên và chịu trách nhiệm cho việc quản lý hệ thống. Ngoài ra, bạn có thể thêm các người dùng khác.",
-    "removing_offline_files": "Đang xoá các tập tin ngoại tuyến",
+    "removing_deleted_files": "Đang xoá các tập tin ngoại tuyến",
     "repair_all": "Sửa chữa tất cả",
     "repair_matched_items": "Đã tìm thấy {count, plural, one {# mục} other {# mục}} trùng khớp",
     "repaired_items": "Đã sửa chữa {count, plural, one{# mục} other {# mục}}",

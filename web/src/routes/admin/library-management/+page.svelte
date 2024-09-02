@@ -20,9 +20,8 @@
     getAllLibraries,
     getLibraryStatistics,
     getUserAdmin,
-    removeOfflineAssets,
+    removeDeletedAssets,
     scanNewAssets,
-    scanRemovedAssets,
     updateLibrary,
     type LibraryResponseDto,
     type LibraryStatsResponseDto,
@@ -124,7 +123,6 @@
     try {
       for (const library of libraries) {
         await scanNewAssets({ id: library.id, scanLibraryDto: {} });
-        await scanRemovedAssets({ id: library.id });
       }
       notificationController.show({
         message: $t('admin.refreshing_all_libraries'),
@@ -173,9 +171,9 @@
 
   const handleRemoveDeletedAssets = async (libraryId: string) => {
     try {
-      await removeOfflineAssets({ id: libraryId });
+      await removeDeletedAssets({ id: libraryId });
       notificationController.show({
-        message: $t('admin.removing_offline_files'),
+        message: $t('admin.removing_deleted_files'),
         type: NotificationType.Info,
       });
     } catch (error) {

@@ -202,7 +202,7 @@
     "refreshing_all_libraries": "正在重新整理所有圖庫",
     "registration": "管理者註冊",
     "registration_description": "由於您是本系統的首位使用者，因此將您指派爲負責管理本系統的管理者，其他使用者須由您協助建立帳號。",
-    "removing_offline_files": "移除離線檔案中",
+    "removing_deleted_files": "移除離線檔案中",
     "repair_all": "全部糾正",
     "repair_matched_items": "有 {count, plural, other {# 個項目相符}}",
     "repaired_items": "已糾正 {count, plural, other {# 個項目}}",

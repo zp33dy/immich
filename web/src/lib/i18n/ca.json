@@ -202,7 +202,7 @@
     "refreshing_all_libraries": "Actualitzant totes les biblioteques",
     "registration": "Registre d'administrador",
     "registration_description": "Com que ets el primer usuari del sistema, seràs designat com a administrador i seràs responsable de les tasques administratives. També seràs l'encarregat de crear usuaris addicionals.",
-    "removing_offline_files": "Eliminant fitxers fora de línia",
+    "removing_deleted_files": "Eliminant fitxers fora de línia",
     "repair_all": "Reparar tot",
     "repair_matched_items": "Coincidència {count, plural, one {# element} other {# elements}}",
     "repaired_items": "Corregit {count, plural, one {# element} other {# elements}}",

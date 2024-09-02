@@ -1,12 +1,4 @@
-import {
-  LibraryResponseDto,
-  LoginResponseDto,
-  ScanLibraryDto,
-  getAllLibraries,
-  removeOfflineAssets,
-  scanNewAssets,
-  scanRemovedAssets,
-} from '@immich/sdk';
+import { LibraryResponseDto, LoginResponseDto, ScanLibraryDto, getAllLibraries, scanNewAssets } from '@immich/sdk';
 import { cpSync, existsSync } from 'node:fs';
 import { Socket } from 'socket.io-client';
 import { userDto, uuidDto } from 'src/fixtures';

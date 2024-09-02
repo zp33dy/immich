@@ -202,7 +202,7 @@
     "refreshing_all_libraries": "Alle bibliotheken vernieuwen",
     "registration": "Beheerder registratie",
     "registration_description": "Omdat je de eerste gebruiker in het systeem bent, word je toegewezen als beheerder en ben je verantwoordelijk voor administratieve taken. Extra gebruikers kunnen door jou worden aangemaakt.",
-    "removing_offline_files": "Offline bestanden verwijderen",
+    "removing_deleted_files": "Offline bestanden verwijderen",
     "repair_all": "Repareer alle",
     "repair_matched_items": "Overeenkomend {count, plural, one {# item} other {# items}}",
     "repaired_items": "Gerepareerd {count, plural, one {# item} other {# items}}",

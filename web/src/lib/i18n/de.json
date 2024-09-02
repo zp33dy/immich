@@ -202,7 +202,7 @@
     "refreshing_all_libraries": "Alle Bibliotheken aktualisieren",
     "registration": "Admin-Registrierung",
     "registration_description": "Da du der erste Benutzer im System bist, wirst du als Admin zugewiesen und bist für administrative Aufgaben zuständig. Weitere Benutzer werden von dir erstellt.",
-    "removing_offline_files": "Offline-Dateien entfernen",
+    "removing_deleted_files": "Offline-Dateien entfernen",
     "repair_all": "Alle reparieren",
     "repair_matched_items": "{count, plural, one {# Eintrag} other {# Einträge}} gefunden",
     "repaired_items": "{count, plural, one {# Eintrag} other {# Einträge}} repariert",

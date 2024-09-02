@@ -202,7 +202,7 @@
     "refreshing_all_libraries": "Samtliga bibliotek uppdateras",
     "registration": "Administratörsregistrering",
     "registration_description": "Du utses till administratör eftersom du är systemets första användare. Du ansvarar för administration och kan skapa ytterligare användare.",
-    "removing_offline_files": "Tar bort offline-filer",
+    "removing_deleted_files": "Tar bort offline-filer",
     "repair_all": "Reparera alla",
     "repair_matched_items": "Matchade {count, plural, one {# föremål} other {# föremål}}",
     "repaired_items": "Reparerade {count, plural, one {# item} other {# items}}",

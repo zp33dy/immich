@@ -202,7 +202,7 @@
     "refreshing_all_libraries": "מרענן את כל הספריות",
     "registration": "רישום מנהל מערכת",
     "registration_description": "מכיוון שאתה המשתמש הראשון במערכת, אתה תוקצה כמנהל ואתה אחראי על משימות ניהול, ומשתמשים נוספים ייווצרו על ידך.",
-    "removing_offline_files": "הסרת קבצים לא מקוונים",
+    "removing_deleted_files": "הסרת קבצים לא מקוונים",
     "repair_all": "תקן הכל",
     "repair_matched_items": "{count, plural, one {פריט # תואם} other {# פריטים תואמים}}",
     "repaired_items": "{count, plural, one {פריט # תוקן} other {# פריטים תוקנו}}",

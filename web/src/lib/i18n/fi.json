@@ -202,7 +202,7 @@
     "refreshing_all_libraries": "Virkistetään kaikki kirjastot",
     "registration": "Pääkäyttäjän rekisteröinti",
     "registration_description": "Pääkäyttäjänä olet vastuussa järjestelmän hallinnallisista tehtävistä ja uusien käyttäjien luomisesta.",
-    "removing_offline_files": "Poistetaan Offline-tiedostot",
+    "removing_deleted_files": "Poistetaan Offline-tiedostot",
     "repair_all": "Korjaa kaikki",
     "repair_matched_items": "Löytyi {count, plural, one {# osuma} other {# osumaa}}",
     "repaired_items": "Korjattiin {count, plural, one {# kohta} other {# kohtaa}}",

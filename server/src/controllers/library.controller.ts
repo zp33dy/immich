@@ -74,7 +74,7 @@ export class LibraryController {
   @Post(':id/removeDeleted')
   @HttpCode(HttpStatus.NO_CONTENT)
   @Authenticated({ admin: true })
-  scanRemovedAssets(@Param() { id }: UUIDParamDto) {
+  removeDeletedAssets(@Param() { id }: UUIDParamDto) {
     return this.service.queueScanRemoveDeleted(id);
   }
 }

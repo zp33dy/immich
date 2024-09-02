@@ -202,7 +202,7 @@
     "refreshing_all_libraries": "Actualisation de toutes les bibliothèques",
     "registration": "Enregistrement de l'administrateur",
     "registration_description": "Puisque vous êtes le premier utilisateur sur le système, vous serez désigné en tant qu'administrateur et responsable des tâches administratives, et vous pourrez alors créer d'autres utilisateurs.",
-    "removing_offline_files": "Suppression des fichiers hors ligne",
+    "removing_deleted_files": "Suppression des fichiers hors ligne",
     "repair_all": "Réparer tout",
     "repair_matched_items": "{count, plural, one {# Élément correspondant} other {# Éléments correspondants}}",
     "repaired_items": "{count, plural, one {# Élément corrigé} other {# Éléments corrigés}}",

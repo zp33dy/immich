@@ -2849,7 +2849,7 @@
     },
     "/libraries/{id}/removeDeleted": {
       "post": {
-        "operationId": "scanRemovedAssets",
+        "operationId": "removeDeletedAssets",
         "parameters": [
           {
             "name": "id",
@@ -8417,9 +8417,6 @@
           "isFavorite": {
             "type": "boolean"
           },
-          "isOffline": {
-            "type": "boolean"
-          },
           "isTrashed": {
             "type": "boolean"
           },
@@ -8509,7 +8506,6 @@
           "id",
           "isArchived",
           "isFavorite",
-          "isOffline",
           "isTrashed",
           "localDateTime",
           "originalFileName",

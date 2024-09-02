@@ -199,7 +199,7 @@
     "refreshing_all_libraries": "Összes képtár újratöltése",
     "registration": "Admin Regisztráció",
     "registration_description": "Mivel ez az első felhasználó a rendszerben, ez a felhasználó lesz az Admin és lesz felelős adminisztratív teendőkért, illetve további felhasználókat ő tud létrehozni.",
-    "removing_offline_files": "Offline Fájlok eltávolítása",
+    "removing_deleted_files": "Offline Fájlok eltávolítása",
     "repair_all": "Összes Javítása",
     "repair_matched_items": "{count, plural, one {# egyezés} other {# egyezés}}",
     "repaired_items": "Javítva {count, plural, one {# fájl} other {# fájl}}",
