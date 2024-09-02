@@ -124,6 +124,7 @@
     try {
       for (const library of libraries) {
         await scanNewAssets({ id: library.id, scanLibraryDto: {} });
+        await scanRemovedAssets({ id: library.id });
       }
       notificationController.show({
         message: $t('admin.refreshing_all_libraries'),
@@ -139,18 +140,6 @@
       await scanNewAssets({ id: libraryId, scanLibraryDto: {} });
       notificationController.show({
         message: $t('admin.scanning_library_for_new_files'),
-        type: NotificationType.Info,
-      });
-    } catch (error) {
-      handleError(error, $t('errors.unable_to_scan_library'));
-    }
-  };
-
-  const handleScanRemoved = async (libraryId: string) => {
-    try {
-      await scanRemovedAssets({ id: libraryId });
-      notificationController.show({
-        message: $t('admin.scanning_library_for_removed_files'),
         type: NotificationType.Info,
       });
     } catch (error) {
@@ -182,7 +171,7 @@
     }
   };
 
-  const handleRemoveOffline = async (libraryId: string) => {
+  const handleRemoveDeletedAssets = async (libraryId: string) => {
     try {
       await removeOfflineAssets({ id: libraryId });
       notificationController.show({
@@ -190,7 +179,7 @@
         type: NotificationType.Info,
       });
     } catch (error) {
-      handleError(error, $t('errors.unable_to_remove_offline_files'));
+      handleError(error, $t('errors.unable_to_remove_deleted_assets'));
     }
   };
 
@@ -206,19 +195,11 @@
     updateLibraryIndex = index;
   };
 
-  const onScanNewLibraryClicked = async (library: LibraryResponseDto) => {
+  const onScanNewAssetsClicked = async (library: LibraryResponseDto) => {
     closeAll();
 
     if (library) {
       await handleScanNew(library.id);
-    }
-  };
-
-  const onScanRemovedLibraryClicked = async (library: LibraryResponseDto) => {
-    closeAll();
-
-    if (library) {
-      await handleScanRemoved(library.id);
     }
   };
 
@@ -228,24 +209,32 @@
     updateLibraryIndex = index;
   };
 
-  const onScanAllLibraryFilesClicked = async (library: LibraryResponseDto) => {
+  const onScanModifiedAssetsClicked = async (library: LibraryResponseDto) => {
     closeAll();
     if (library) {
       await handleScanModifiedFiles(library.id);
     }
   };
 
-  const onForceScanAllLibraryFilesClicked = async (library: LibraryResponseDto) => {
+  const onForceScanAllAssetsClicked = async (library: LibraryResponseDto) => {
     closeAll();
     if (library) {
       await handleForceScan(library.id);
     }
   };
 
-  const onRemoveOfflineFilesClicked = async (library: LibraryResponseDto) => {
+  const onRemoveDeletedAssetsClicked = async (library: LibraryResponseDto) => {
+    const isConfirmed = await dialogController.show({
+      prompt: $t('admin.confirm_remove_deleted_assets', { values: { library: library.name } }),
+    });
+
+    if (!isConfirmed) {
+      return;
+    }
+
     closeAll();
     if (library) {
-      await handleRemoveOffline(library.id);
+      await handleRemoveDeletedAssets(library.id);
     }
   };
 
@@ -379,31 +368,34 @@
                     <MenuOption onClick={() => onEditImportPathClicked(index)} text={$t('edit_import_paths')} />
                     <MenuOption onClick={() => onScanSettingClicked(index)} text={$t('scan_settings')} />
                     <hr />
-                    <MenuOption onClick={() => onScanNewLibraryClicked(library)} text={$t('scan_new_library_files')} />
                     <MenuOption
-                      onClick={() => onScanRemovedLibraryClicked(library)}
-                      text={$t('scan_removed_library_files')}
+                      onClick={() => onScanNewAssetsClicked(library)}
+                      text={$t('scan_new_library_files')}
+                      subtitle={$t('looks_for_new_files')}
                     />
                     <MenuOption
-                      onClick={() => onScanAllLibraryFilesClicked(library)}
+                      onClick={() => onScanModifiedAssetsClicked(library)}
                       text={$t('scan_all_library_files')}
                       subtitle={$t('only_refreshes_modified_files')}
                     />
                     <MenuOption
-                      onClick={() => onForceScanAllLibraryFilesClicked(library)}
+                      onClick={() => onForceScanAllAssetsClicked(library)}
                       text={$t('force_re-scan_library_files')}
                       subtitle={$t('refreshes_every_file')}
                     />
                     <hr />
                     <MenuOption
-                      onClick={() => onRemoveOfflineFilesClicked(library)}
-                      text={$t('remove_offline_files')}
-                    />
-                    <MenuOption
-                      text={$t('delete_library')}
+                      onClick={() => onRemoveDeletedAssetsClicked(library)}
                       activeColor="bg-red-200"
                       textColor="text-red-600"
+                      text={$t('remove_deleted_assets')}
+                      subtitle={$t('deletes_missing_assets')}
+                    />
+                    <MenuOption
                       onClick={() => handleDelete(library, index)}
+                      activeColor="bg-red-200"
+                      textColor="text-red-600"
+                      text={$t('delete_library')}
                     />
                   </ButtonContextMenu>
                 </td>

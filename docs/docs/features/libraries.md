@@ -2,7 +2,7 @@
 
 ## Overview
 
-Immich supports the creation of libraries which is a top-level asset container. Currently, there are two types of libraries: traditional upload libraries that can sync with a mobile device, and external libraries, that keeps up to date with files on disk. Libraries are different from albums in that an asset can belong to multiple albums but only one library, and deleting a library deletes all assets contained within. As of August 2023, this is a new feature and libraries have a lot of potential for future development beyond what is documented here. This document attempts to describe the current state of libraries.
+Immich supports the creation of libraries which is a top-level asset container. Currently, there are two types of libraries: traditional upload libraries that can sync with a mobile device, and external libraries, that keeps up to date with files on disk. Libraries are different from albums in that an asset can belong to multiple albums but only one library, and deleting a library deletes all assets contained within.
 
 ## External Libraries
 
@@ -10,7 +10,7 @@ External libraries tracks assets stored outside of Immich, i.e. in the file syst
 
 If a file is modified outside of Immich, the changes will not be reflected in immich until the library is scanned again. There are different ways to scan a library depending on the use case:
 
-- Scan Library Files: This is the default scan method and also the quickest. It will scan all files in the library and add new files to the library. It will notice if any files are missing (see below) but not check existing assets
+- Scan For New Assets: This is the default scan method and also the quickest. It will scan all files in the library and add new files to the library.
 - Scan All Library Files: Same as above, but will check each existing asset to see if the modification time has changed. If it has, the asset will be updated. Since it has to check each asset, this is slower than Scan Library Files.
 - Force Scan All Library Files: Same as above, but will read each asset from disk no matter the modification time. This is useful in some cases where an asset has been modified externally but the modification time has not changed. This is the slowest way to scan because it reads each asset from disk.
 
@@ -24,17 +24,23 @@ In external libraries, the file path is used for duplicate detection. This means
 
 :::caution
 
-If you add assets from an external library to an album and then move the asset to another location within the library, the asset will be removed from the album upon rescan. This is because the asset is considered a new asset after the move. This is a known issue and will be fixed in a future release.
+If you add metadata to an external asset in any way (i.e. add it to an album or edit the description), that metadata is only stored inside Immich and will not be persisted to the external asset file. If you move an asset to another location within the library all such metadata will be lost upon rescan. This is because the asset is considered a new asset after the move. This is a known issue and will be fixed in a future release.
 
 :::
 
 ### Deleted External Assets
 
-Note: Either a manual or scheduled library scan must have been performed to identify offline assets before this process will work.
+If you delete assets from disk, move asset files, edit import paths, or adding exclusion patterns, you need to perform a separate scan for Immich to pick up the changes:
 
-In all above scan methods, Immich will check if any files are missing. This can happen if files are deleted, or if they are on a storage location that is currently unavailable, like a network drive that is not mounted, or a USB drive that has been unplugged. In order to prevent accidental deletion of assets, Immich will not immediately delete an asset from the library if the file is missing. Instead, the asset will be internally marked as offline and will still be visible in the main timeline. If the file is moved back to its original location and the library is scanned again, the asset will be restored.
+- Remove Deleted Assets: Checks every asset in the library and removes it if the corresponding asset on disk is not accessible
 
-Finally, files can be deleted from Immich via the `Remove Offline Files` job. This job can be found by the three dots menu for the associated external storage that was configured under Administration > Libraries (the same location described at [create external libraries](#create-external-libraries)). When this job is run, any assets marked as offline will then be removed from Immich. Run this job whenever files have been deleted from the file system and you want to remove them from Immich.
+:::caution
+
+This will also remove any file from Immich that is currently not found on disk, including offline network shares.
+
+:::
+
+This scan is never run automatically and must be manually triggered from the external library settings page. The scan also checks every file against the import paths and exclusion patterns and deletes assets if needed.
 
 ### Import Paths
 
