@@ -1170,7 +1170,7 @@ describe(LibraryService.name, () => {
     it('should queue a library scan of external library', async () => {
       libraryMock.get.mockResolvedValue(libraryStub.externalLibrary1);
 
-      await sut.queueScanNew(libraryStub.externalLibrary1.id, {});
+      await sut.queueScan(libraryStub.externalLibrary1.id, {});
 
       expect(jobMock.queue.mock.calls).toEqual([
         [
@@ -1189,7 +1189,7 @@ describe(LibraryService.name, () => {
     it('should queue a library scan of all modified assets', async () => {
       libraryMock.get.mockResolvedValue(libraryStub.externalLibrary1);
 
-      await sut.queueScanNew(libraryStub.externalLibrary1.id, { refreshModifiedFiles: true });
+      await sut.queueScan(libraryStub.externalLibrary1.id, { refreshModifiedFiles: true });
 
       expect(jobMock.queue.mock.calls).toEqual([
         [
@@ -1208,7 +1208,7 @@ describe(LibraryService.name, () => {
     it('should queue a forced library scan', async () => {
       libraryMock.get.mockResolvedValue(libraryStub.externalLibrary1);
 
-      await sut.queueScanNew(libraryStub.externalLibrary1.id, { refreshAllFiles: true });
+      await sut.queueScan(libraryStub.externalLibrary1.id, { refreshAllFiles: true });
 
       expect(jobMock.queue.mock.calls).toEqual([
         [

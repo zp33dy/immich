@@ -43,19 +43,19 @@ export class LibraryController {
     return this.service.update(id, dto);
   }
 
+  @Delete(':id')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @Authenticated({ permission: Permission.LIBRARY_DELETE, admin: true })
+  deleteLibrary(@Param() { id }: UUIDParamDto): Promise<void> {
+    return this.service.delete(id);
+  }
+
   @Post(':id/validate')
   @HttpCode(200)
   @Authenticated({ admin: true })
   // TODO: change endpoint to validate current settings instead
   validate(@Param() { id }: UUIDParamDto, @Body() dto: ValidateLibraryDto): Promise<ValidateLibraryResponseDto> {
     return this.service.validate(id, dto);
-  }
-
-  @Delete(':id')
-  @HttpCode(HttpStatus.NO_CONTENT)
-  @Authenticated({ permission: Permission.LIBRARY_DELETE, admin: true })
-  deleteLibrary(@Param() { id }: UUIDParamDto): Promise<void> {
-    return this.service.delete(id);
   }
 
   @Get(':id/statistics')
@@ -68,13 +68,13 @@ export class LibraryController {
   @HttpCode(HttpStatus.NO_CONTENT)
   @Authenticated({ admin: true })
   scanNewAssets(@Param() { id }: UUIDParamDto, @Body() dto: ScanLibraryDto) {
-    return this.service.queueScanNew(id, dto);
+    return this.service.queueScan(id, dto);
   }
 
   @Post(':id/removeDeleted')
   @HttpCode(HttpStatus.NO_CONTENT)
   @Authenticated({ admin: true })
   removeDeletedAssets(@Param() { id }: UUIDParamDto) {
-    return this.service.queueScanRemoveDeleted(id);
+    return this.service.queueRemoveDeleted(id);
   }
 }

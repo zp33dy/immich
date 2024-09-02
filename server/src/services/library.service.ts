@@ -477,7 +477,7 @@ export class LibraryService {
     return JobStatus.SUCCESS;
   }
 
-  async queueScanNew(id: string, dto: ScanLibraryDto) {
+  async queueScan(id: string, dto: ScanLibraryDto) {
     await this.findOrFail(id);
 
     await this.jobRepository.queue({
@@ -490,7 +490,7 @@ export class LibraryService {
     });
   }
 
-  async queueScanRemoveDeleted(id: string) {
+  async queueRemoveDeleted(id: string) {
     await this.findOrFail(id);
 
     await this.jobRepository.queue({
@@ -537,7 +537,6 @@ export class LibraryService {
     const asset = await this.assetRepository.getById(job.id);
 
     if (!asset) {
-      // Asset is no longer in the database, skip
       return JobStatus.SKIPPED;
     }
 
@@ -557,7 +556,7 @@ export class LibraryService {
 
     const fileExists = await this.storageRepository.checkFileExists(asset.originalPath, R_OK);
     if (!fileExists) {
-      this.logger.debug(`Asset is no longer found on disk, removing: ${asset.originalPath}`);
+      this.logger.debug(`Asset is no longer on disk, removing: ${asset.originalPath}`);
       await this.assetRepository.remove(asset);
       return JobStatus.SUCCESS;
     }
