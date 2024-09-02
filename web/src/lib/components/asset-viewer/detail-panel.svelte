@@ -141,19 +141,6 @@
     <p class="text-lg text-immich-fg dark:text-immich-dark-fg">{$t('info')}</p>
   </div>
 
-  {#if asset.isOffline}
-    <section class="px-4 py-4">
-      <div role="alert">
-        <div class="rounded-t bg-red-500 px-4 py-2 font-bold text-white">{$t('asset_offline')}</div>
-        <div class="rounded-b border border-t-0 border-red-400 bg-red-100 px-4 py-3 text-red-700">
-          <p>
-            {$t('asset_offline_description')}
-          </p>
-        </div>
-      </div>
-    </section>
-  {/if}
-
   <DetailPanelDescription {asset} {isOwner} />
   <DetailPanelRating {asset} {isOwner} />
 

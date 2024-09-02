@@ -18,7 +18,7 @@ import {
   mapLibrary,
 } from 'src/dtos/library.dto';
 import { AssetType } from 'src/enum';
-import { IAssetRepository, WithProperty } from 'src/interfaces/asset.interface';
+import { IAssetRepository } from 'src/interfaces/asset.interface';
 import { ICryptoRepository } from 'src/interfaces/crypto.interface';
 import { DatabaseLock, IDatabaseRepository } from 'src/interfaces/database.interface';
 import { ArgOf } from 'src/interfaces/event.interface';
