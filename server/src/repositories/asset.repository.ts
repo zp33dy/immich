@@ -364,12 +364,10 @@ export class AssetRepository implements IAssetRepository {
   }
 
   @GenerateSql(
-    ...Object.values(WithProperty)
-      .filter((property) => property !== WithProperty.IS_OFFLINE && property !== WithProperty.IS_ONLINE)
-      .map((property) => ({
-        name: property,
-        params: [DummyValue.PAGINATION, property],
-      })),
+    ...Object.values(WithProperty).map((property) => ({
+      name: property,
+      params: [DummyValue.PAGINATION, property],
+    })),
   )
   getWithout(pagination: PaginationOptions, property: WithoutProperty): Paginated<AssetEntity> {
     let relations: FindOptionsRelations<AssetEntity> = {};

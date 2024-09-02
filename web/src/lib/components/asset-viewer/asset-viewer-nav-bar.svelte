@@ -29,7 +29,6 @@
     type StackResponseDto,
   } from '@immich/sdk';
   import {
-    mdiAlertOutline,
     mdiCogRefreshOutline,
     mdiContentCopy,
     mdiDatabaseRefreshOutline,

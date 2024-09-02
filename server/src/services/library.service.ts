@@ -481,6 +481,10 @@ export class LibraryService {
     await this.findOrFail(id);
 
     if (dto.removeDeleted) {
+      if (dto.refreshAllFiles || dto.refreshModifiedFiles) {
+        throw new BadRequestException('Cannot refresh and remove deleted assets at the same time');
+      }
+
       await this.jobRepository.queue({ name: JobName.LIBRARY_QUEUE_REMOVE_DELETED, data: { id } });
     } else {
       await this.jobRepository.queue({
