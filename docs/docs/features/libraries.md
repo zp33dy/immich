@@ -1,18 +1,14 @@
-# Libraries
+# External Libraries
 
-## Overview
-
-Immich supports the creation of libraries which is a top-level asset container. Currently, there are two types of libraries: traditional upload libraries that can sync with a mobile device, and external libraries, that keeps up to date with files on disk. Libraries are different from albums in that an asset can belong to multiple albums but only one library, and deleting a library deletes all assets contained within.
-
-## External Libraries
-
-External libraries tracks assets stored outside of Immich, i.e. in the file system. When the external library is scanned, Immich will read the metadata from the file and create an asset in the library for each image or video file. These items will then be shown in the main timeline, and they will look and behave like any other asset, including viewing on the map, adding to albums, etc.
+External libraries track assets stored in the filesystem outside of Immich. When the external library is scanned, Immich will load videos and photos from disk and create the corresponding assets. These items will then be shown in the main timeline, and they will look and behave like any other asset, including viewing on the map, adding to albums, etc.
 
 If a file is modified outside of Immich, the changes will not be reflected in immich until the library is scanned again. There are different ways to scan a library depending on the use case:
 
 - Scan For New Assets: This is the default scan method and also the quickest. It will scan all files in the library and add new files to the library.
 - Scan All Library Files: Same as above, but will check each existing asset to see if the modification time has changed. If it has, the asset will be updated. Since it has to check each asset, this is slower than Scan Library Files.
 - Force Scan All Library Files: Same as above, but will read each asset from disk no matter the modification time. This is useful in some cases where an asset has been modified externally but the modification time has not changed. This is the slowest way to scan because it reads each asset from disk.
+
+By default, a new scan is run every day to automatically pick up changes.
 
 :::caution
 
@@ -124,7 +120,7 @@ This will disallow the images from being deleted in the web UI, or adding metada
 _Remember to run `docker compose up -d` to register the changes. Make sure you can see the mounted path in the container._
 :::
 
-### Create External Libraries
+### Create A New Library
 
 These actions must be performed by the Immich administrator.
 
