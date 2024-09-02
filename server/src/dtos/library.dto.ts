@@ -95,6 +95,9 @@ export class ScanLibraryDto {
 
   @ValidateBoolean({ optional: true })
   refreshAllFiles?: boolean;
+
+  @ValidateBoolean({ optional: true })
+  removeDeleted?: boolean;
 }
 
 export class LibraryResponseDto {

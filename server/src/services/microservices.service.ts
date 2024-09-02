@@ -88,7 +88,7 @@ export class MicroservicesService {
       [JobName.SIDECAR_WRITE]: (data) => this.metadataService.handleSidecarWrite(data),
       [JobName.LIBRARY_SCAN_ASSET]: (data) => this.libraryService.handleAssetRefresh(data),
       [JobName.LIBRARY_SCAN_NEW]: (data) => this.libraryService.handleQueueAssetRefresh(data),
-      [JobName.LIBRARY_SCAN_REMOVED]: (data) => this.libraryService.handleQueueRemoveDeleted(data),
+      [JobName.LIBRARY_QUEUE_REMOVE_DELETED]: (data) => this.libraryService.handleQueueRemoveDeleted(data),
       [JobName.LIBRARY_DELETE]: (data) => this.libraryService.handleDeleteLibrary(data),
       [JobName.LIBRARY_REMOVE_DELETED]: (data) => this.libraryService.handleRemoveDeleted(data),
       [JobName.LIBRARY_QUEUE_SCAN_ALL]: (data) => this.libraryService.handleQueueAllScan(data),

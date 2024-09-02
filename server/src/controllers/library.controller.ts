@@ -67,14 +67,7 @@ export class LibraryController {
   @Post(':id/scan')
   @HttpCode(HttpStatus.NO_CONTENT)
   @Authenticated({ admin: true })
-  scanNewAssets(@Param() { id }: UUIDParamDto, @Body() dto: ScanLibraryDto) {
+  scan(@Param() { id }: UUIDParamDto, @Body() dto: ScanLibraryDto) {
     return this.service.queueScan(id, dto);
-  }
-
-  @Post(':id/removeDeleted')
-  @HttpCode(HttpStatus.NO_CONTENT)
-  @Authenticated({ admin: true })
-  removeDeletedAssets(@Param() { id }: UUIDParamDto) {
-    return this.service.queueRemoveDeleted(id);
   }
 }

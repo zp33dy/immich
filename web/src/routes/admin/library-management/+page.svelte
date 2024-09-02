@@ -20,8 +20,7 @@
     getAllLibraries,
     getLibraryStatistics,
     getUserAdmin,
-    removeDeletedAssets,
-    scanNewAssets,
+    scan,
     updateLibrary,
     type LibraryResponseDto,
     type LibraryStatsResponseDto,
@@ -122,7 +121,7 @@
   const handleScanAll = async () => {
     try {
       for (const library of libraries) {
-        await scanNewAssets({ id: library.id, scanLibraryDto: {} });
+        await scan({ id: library.id, scanLibraryDto: {} });
       }
       notificationController.show({
         message: $t('admin.refreshing_all_libraries'),
@@ -135,7 +134,7 @@
 
   const handleScanNew = async (libraryId: string) => {
     try {
-      await scanNewAssets({ id: libraryId, scanLibraryDto: {} });
+      await scan({ id: libraryId, scanLibraryDto: {} });
       notificationController.show({
         message: $t('admin.scanning_library_for_new_files'),
         type: NotificationType.Info,
@@ -147,7 +146,7 @@
 
   const handleScanModifiedFiles = async (libraryId: string) => {
     try {
-      await scanNewAssets({ id: libraryId, scanLibraryDto: { refreshModifiedFiles: true } });
+      await scan({ id: libraryId, scanLibraryDto: { refreshModifiedFiles: true } });
       notificationController.show({
         message: $t('admin.scanning_library_for_changed_files'),
         type: NotificationType.Info,
@@ -157,9 +156,9 @@
     }
   };
 
-  const handleForceScan = async (libraryId: string) => {
+  const handleForceReScan = async (libraryId: string) => {
     try {
-      await scanNewAssets({ id: libraryId, scanLibraryDto: { refreshAllFiles: true } });
+      await scan({ id: libraryId, scanLibraryDto: { refreshAllFiles: true } });
       notificationController.show({
         message: $t('admin.forcing_refresh_library_files'),
         type: NotificationType.Info,
@@ -171,7 +170,7 @@
 
   const handleRemoveDeletedAssets = async (libraryId: string) => {
     try {
-      await removeDeletedAssets({ id: libraryId });
+      await scan({ id: libraryId, scanLibraryDto: { removeDeleted: true } });
       notificationController.show({
         message: $t('admin.removing_deleted_files'),
         type: NotificationType.Info,
@@ -217,7 +216,7 @@
   const onForceScanAllAssetsClicked = async (library: LibraryResponseDto) => {
     closeAll();
     if (library) {
-      await handleForceScan(library.id);
+      await handleForceReScan(library.id);
     }
   };
 

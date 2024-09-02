@@ -480,25 +480,18 @@ export class LibraryService {
   async queueScan(id: string, dto: ScanLibraryDto) {
     await this.findOrFail(id);
 
-    await this.jobRepository.queue({
-      name: JobName.LIBRARY_SCAN_NEW,
-      data: {
-        id,
-        refreshModifiedFiles: dto.refreshModifiedFiles ?? false,
-        refreshAllFiles: dto.refreshAllFiles ?? false,
-      },
-    });
-  }
-
-  async queueRemoveDeleted(id: string) {
-    await this.findOrFail(id);
-
-    await this.jobRepository.queue({
-      name: JobName.LIBRARY_SCAN_REMOVED,
-      data: {
-        id,
-      },
-    });
+    if (dto.removeDeleted) {
+      await this.jobRepository.queue({ name: JobName.LIBRARY_QUEUE_REMOVE_DELETED, data: { id } });
+    } else {
+      await this.jobRepository.queue({
+        name: JobName.LIBRARY_SCAN_NEW,
+        data: {
+          id,
+          refreshModifiedFiles: dto.refreshModifiedFiles ?? false,
+          refreshAllFiles: dto.refreshAllFiles ?? false,
+        },
+      });
+    }
   }
 
   async queueRemoveOffline(id: string) {
@@ -524,7 +517,7 @@ export class LibraryService {
     );
     await this.jobRepository.queueAll(
       libraries.map((library) => ({
-        name: JobName.LIBRARY_SCAN_REMOVED,
+        name: JobName.LIBRARY_QUEUE_REMOVE_DELETED,
         data: {
           id: library.id,
         },

@@ -2847,44 +2847,9 @@
         ]
       }
     },
-    "/libraries/{id}/removeDeleted": {
-      "post": {
-        "operationId": "removeDeletedAssets",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "format": "uuid",
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "204": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          },
-          {
-            "cookie": []
-          },
-          {
-            "api_key": []
-          }
-        ],
-        "tags": [
-          "Libraries"
-        ]
-      }
-    },
     "/libraries/{id}/scan": {
       "post": {
-        "operationId": "scanNewAssets",
+        "operationId": "scan",
         "parameters": [
           {
             "name": "id",
@@ -8281,9 +8246,6 @@
           "isFavorite": {
             "type": "boolean"
           },
-          "isOffline": {
-            "type": "boolean"
-          },
           "isVisible": {
             "type": "boolean"
           },
@@ -9865,9 +9827,6 @@
           "isNotInAlbum": {
             "type": "boolean"
           },
-          "isOffline": {
-            "type": "boolean"
-          },
           "isVisible": {
             "type": "boolean"
           },
@@ -10507,6 +10466,9 @@
             "type": "boolean"
           },
           "refreshModifiedFiles": {
+            "type": "boolean"
+          },
+          "removeDeleted": {
             "type": "boolean"
           }
         },
@@ -11231,9 +11193,6 @@
             "type": "boolean"
           },
           "isNotInAlbum": {
-            "type": "boolean"
-          },
-          "isOffline": {
             "type": "boolean"
           },
           "isVisible": {

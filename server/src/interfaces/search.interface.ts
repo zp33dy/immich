@@ -57,7 +57,6 @@ export interface SearchStatusOptions {
   isEncoded?: boolean;
   isFavorite?: boolean;
   isMotion?: boolean;
-  isOffline?: boolean;
   isVisible?: boolean;
   isNotInAlbum?: boolean;
   type?: AssetType;

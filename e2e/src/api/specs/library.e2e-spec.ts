@@ -2,10 +2,8 @@ import {
   LibraryResponseDto,
   LoginResponseDto,
   ScanLibraryDto,
-  deleteAssets,
   getAllLibraries,
-  removeDeletedAssets,
-  scanNewAssets,
+  scan as scanLibrary,
 } from '@immich/sdk';
 import { cpSync, existsSync } from 'node:fs';
 import { Socket } from 'socket.io-client';
@@ -17,10 +15,7 @@ import { utimes } from 'utimes';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 
 const scan = async (accessToken: string, id: string, dto: ScanLibraryDto = {}) =>
-  scanNewAssets({ id, scanLibraryDto: dto }, { headers: asBearerAuth(accessToken) });
-
-const removeDeleted = async (accessToken: string, id: string, dto: ScanLibraryDto = {}) =>
-  removeDeletedAssets({ id }, { headers: asBearerAuth(accessToken) });
+  scanLibrary({ id, scanLibraryDto: dto }, { headers: asBearerAuth(accessToken) });
 
 describe('/libraries', () => {
   let admin: LoginResponseDto;
@@ -481,7 +476,7 @@ describe('/libraries', () => {
 
       utils.removeImageFile(`${testAssetDir}/temp/offline/offline.png`);
 
-      await removeDeleted(admin.accessToken, library.id);
+      await scan(admin.accessToken, library.id, { removeDeleted: true });
       await utils.waitForQueueFinish(admin.accessToken, 'library');
 
       const { assets: newAssets } = await utils.metadataSearch(admin.accessToken, { libraryId: library.id });
@@ -504,7 +499,7 @@ describe('/libraries', () => {
         .set('Authorization', `Bearer ${admin.accessToken}`)
         .send({ importPaths: [`${testAssetDirInternal}/temp/directoryA`] });
 
-      await removeDeleted(admin.accessToken, library.id);
+      await scan(admin.accessToken, library.id, { removeDeleted: true });
       await utils.waitForQueueFinish(admin.accessToken, 'library');
 
       const { assets } = await utils.metadataSearch(admin.accessToken, { libraryId: library.id });
@@ -528,7 +523,7 @@ describe('/libraries', () => {
         .set('Authorization', `Bearer ${admin.accessToken}`)
         .send({ exclusionPatterns: ['**/directoryB/**'] });
 
-      await removeDeleted(admin.accessToken, library.id);
+      await scan(admin.accessToken, library.id, { removeDeleted: true });
       await utils.waitForQueueFinish(admin.accessToken, 'library');
 
       const { assets } = await utils.metadataSearch(admin.accessToken, { libraryId: library.id });
@@ -565,7 +560,7 @@ describe('/libraries', () => {
 
       utils.removeImageFile(`${testAssetDir}/temp/offline/offline.png`);
 
-      await removeDeleted(admin.accessToken, library.id);
+      await scan(admin.accessToken, library.id, { removeDeleted: true });
       await utils.waitForQueueFinish(admin.accessToken, 'library');
 
       const { assets: assetsAfterDeletion } = await utils.metadataSearch(admin.accessToken, {

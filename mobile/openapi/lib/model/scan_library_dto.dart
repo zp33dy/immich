@@ -15,6 +15,7 @@ class ScanLibraryDto {
   ScanLibraryDto({
     this.refreshAllFiles,
     this.refreshModifiedFiles,
+    this.removeDeleted,
   });
 
   ///
@@ -33,19 +34,29 @@ class ScanLibraryDto {
   ///
   bool? refreshModifiedFiles;
 
+  ///
+  /// Please note: This property should have been non-nullable! Since the specification file
+  /// does not include a default value (using the "default:" property), however, the generated
+  /// source code must fall back to having a nullable type.
+  /// Consider adding a "default:" property in the specification file to hide this note.
+  ///
+  bool? removeDeleted;
+
   @override
   bool operator ==(Object other) => identical(this, other) || other is ScanLibraryDto &&
     other.refreshAllFiles == refreshAllFiles &&
-    other.refreshModifiedFiles == refreshModifiedFiles;
+    other.refreshModifiedFiles == refreshModifiedFiles &&
+    other.removeDeleted == removeDeleted;
 
   @override
   int get hashCode =>
     // ignore: unnecessary_parenthesis
     (refreshAllFiles == null ? 0 : refreshAllFiles!.hashCode) +
-    (refreshModifiedFiles == null ? 0 : refreshModifiedFiles!.hashCode);
+    (refreshModifiedFiles == null ? 0 : refreshModifiedFiles!.hashCode) +
+    (removeDeleted == null ? 0 : removeDeleted!.hashCode);
 
   @override
-  String toString() => 'ScanLibraryDto[refreshAllFiles=$refreshAllFiles, refreshModifiedFiles=$refreshModifiedFiles]';
+  String toString() => 'ScanLibraryDto[refreshAllFiles=$refreshAllFiles, refreshModifiedFiles=$refreshModifiedFiles, removeDeleted=$removeDeleted]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
@@ -58,6 +69,11 @@ class ScanLibraryDto {
       json[r'refreshModifiedFiles'] = this.refreshModifiedFiles;
     } else {
     //  json[r'refreshModifiedFiles'] = null;
+    }
+    if (this.removeDeleted != null) {
+      json[r'removeDeleted'] = this.removeDeleted;
+    } else {
+    //  json[r'removeDeleted'] = null;
     }
     return json;
   }
@@ -72,6 +88,7 @@ class ScanLibraryDto {
       return ScanLibraryDto(
         refreshAllFiles: mapValueOfType<bool>(json, r'refreshAllFiles'),
         refreshModifiedFiles: mapValueOfType<bool>(json, r'refreshModifiedFiles'),
+        removeDeleted: mapValueOfType<bool>(json, r'removeDeleted'),
       );
     }
     return null;

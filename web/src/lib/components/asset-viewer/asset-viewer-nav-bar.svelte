@@ -61,7 +61,7 @@
   const sharedLink = getSharedLink();
 
   $: isOwner = $user && asset.ownerId === $user?.id;
-  $: showDownloadButton = sharedLink ? sharedLink.allowDownload : !asset.isOffline;
+  $: showDownloadButton = sharedLink ? sharedLink.allowDownload : false;
   // $: showEditorButton =
   //   isOwner &&
   //   asset.type === AssetTypeEnum.Image &&
@@ -85,9 +85,6 @@
   >
     {#if !asset.isTrashed && $user}
       <ShareAction {asset} />
-    {/if}
-    {#if asset.isOffline}
-      <CircleIconButton color="opaque" icon={mdiAlertOutline} on:click={onShowDetail} title={$t('asset_offline')} />
     {/if}
     {#if asset.livePhotoVideoId}
       <slot name="motion-photo" />
