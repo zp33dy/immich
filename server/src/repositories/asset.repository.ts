@@ -180,7 +180,7 @@ export class AssetRepository implements IAssetRepository {
   @GenerateSql({ params: [{ take: 1, skip: 0 }, DummyValue.UUID] })
   getExternalLibraryAssetPaths(pagination: PaginationOptions, libraryId: string): Paginated<AssetPathEntity> {
     return paginate(this.repository, pagination, {
-      select: { id: true, originalPath: true, isOffline: true },
+      select: { id: true, originalPath: true },
       where: { library: { id: libraryId }, isExternal: true },
     });
   }
@@ -205,15 +205,6 @@ export class AssetRepository implements IAssetRepository {
       [libraryId, originalPaths],
     );
     return result.map((row: { path: string }) => row.path);
-  }
-
-  @GenerateSql({ params: [DummyValue.UUID, [DummyValue.STRING]] })
-  @ChunkedArray({ paramIndex: 1 })
-  async updateOfflineLibraryAssets(libraryId: string, originalPaths: string[]): Promise<void> {
-    await this.repository.update(
-      { library: { id: libraryId }, originalPath: Not(In(originalPaths)), isOffline: false },
-      { isOffline: true },
-    );
   }
 
   getAll(pagination: PaginationOptions, options: AssetSearchOptions = {}): Paginated<AssetEntity> {
@@ -531,24 +522,14 @@ export class AssetRepository implements IAssetRepository {
         where = [{ sidecarPath: Not(IsNull()), isVisible: true }];
         break;
       }
-      case WithProperty.IS_OFFLINE: {
-        if (!libraryId) {
-          throw new Error('Library id is required when finding offline assets');
-        }
-        where = [{ isOffline: true, libraryId }];
-        break;
-      }
-      case WithProperty.IS_ONLINE: {
-        if (!libraryId) {
-          throw new Error('Library id is required when finding online assets');
-        }
-        where = [{ isOffline: false, libraryId }];
-        break;
-      }
 
       default: {
         throw new Error(`Invalid getWith property: ${property}`);
       }
+    }
+
+    if (libraryId) {
+      where = [{ ...where, libraryId }];
     }
 
     return paginate(this.repository, pagination, {

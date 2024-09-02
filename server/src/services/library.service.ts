@@ -158,15 +158,8 @@ export class LibraryService {
           };
           return handlePromiseError(handler(), this.logger);
         },
-        onUnlink: (path) => {
-          const handler = async () => {
-            this.logger.debug(`Detected deleted file at ${path} in library ${library.id}`);
-            const asset = await this.assetRepository.getByLibraryIdAndOriginalPath(library.id, path);
-            if (asset && matcher(path)) {
-              await this.assetRepository.update({ id: asset.id, isOffline: true });
-            }
-          };
-          return handlePromiseError(handler(), this.logger);
+        onUnlink: () => {
+          // Don't do anything
         },
         onError: (error) => {
           this.logger.error(`Library watcher for library ${library.id} encountered error: ${error}`);
@@ -375,17 +368,9 @@ export class LibraryService {
     try {
       stats = await this.storageRepository.stat(assetPath);
     } catch (error: Error | any) {
-      // Can't access file, probably offline
-      if (existingAssetEntity) {
-        // Mark asset as offline
-        this.logger.debug(`Marking asset as offline: ${assetPath}`);
+      // Can't access file
 
-        await this.assetRepository.update({ id: existingAssetEntity.id, isOffline: true });
-        return JobStatus.SUCCESS;
-      } else {
-        // File can't be accessed and does not already exist in db
-        throw new BadRequestException('Cannot access file', { cause: error });
-      }
+      throw new BadRequestException('Cannot access file', { cause: error });
     }
 
     let doImport = false;
@@ -413,16 +398,9 @@ export class LibraryService {
         `Asset is missing file extension, re-importing: ${assetPath}. Current incorrect filename: ${existingAssetEntity.originalFileName}.`,
       );
       doRefresh = true;
-    } else if (!job.force && stats && !existingAssetEntity.isOffline) {
+    } else if (!job.force && stats) {
       // Asset exists on disk and in db and mtime has not changed. Also, we are not forcing refresn. Therefore, do nothing
       this.logger.debug(`Asset already exists in database and on disk, will not import: ${assetPath}`);
-    }
-
-    if (stats && existingAssetEntity?.isOffline) {
-      // File was previously offline but is now online
-      this.logger.debug(`Marking previously-offline asset as online: ${assetPath}`);
-      await this.assetRepository.update({ id: existingAssetEntity.id, isOffline: false });
-      doRefresh = true;
     }
 
     if (!doImport && !doRefresh) {
@@ -512,7 +490,7 @@ export class LibraryService {
     });
   }
 
-  async queueScanRemoved(id: string) {
+  async queueScanRemoveDeleted(id: string) {
     await this.findOrFail(id);
 
     await this.jobRepository.queue({
@@ -525,7 +503,7 @@ export class LibraryService {
 
   async queueRemoveOffline(id: string) {
     this.logger.verbose(`Queueing offline file removal from library ${id}`);
-    await this.jobRepository.queue({ name: JobName.LIBRARY_REMOVE_OFFLINE, data: { id } });
+    await this.jobRepository.queue({ name: JobName.LIBRARY_REMOVE_DELETED, data: { id } });
   }
 
   async handleQueueAllScan(job: IBaseJob): Promise<JobStatus> {
@@ -555,7 +533,7 @@ export class LibraryService {
     return JobStatus.SUCCESS;
   }
 
-  async handleCheckAssetOnlineStatus(job: ILibraryOfflineJob): Promise<JobStatus> {
+  async handleRemoveDeleted(job: ILibraryOfflineJob): Promise<JobStatus> {
     const asset = await this.assetRepository.getById(job.id);
 
     if (!asset) {
@@ -563,69 +541,30 @@ export class LibraryService {
       return JobStatus.SKIPPED;
     }
 
-    if (asset.isOffline) {
-      this.logger.verbose(`Asset is already offline: ${asset.originalPath}`);
-      return JobStatus.SUCCESS;
-    }
-
     const isInPath = job.importPaths.find((path) => asset.originalPath.startsWith(path));
     if (!isInPath) {
-      this.logger.debug(`Asset is no longer in an import path, marking offline: ${asset.originalPath}`);
-      await this.assetRepository.update({ id: asset.id, isOffline: true });
+      this.logger.debug(`Asset is no longer in an import path, removing: ${asset.originalPath}`);
+      await this.assetRepository.remove(asset);
       return JobStatus.SUCCESS;
     }
 
     const isExcluded = job.exclusionPatterns.some((pattern) => picomatch.isMatch(asset.originalPath, pattern));
     if (isExcluded) {
-      this.logger.debug(`Asset is covered by an exclusion pattern, marking offline: ${asset.originalPath}`);
-      await this.assetRepository.update({ id: asset.id, isOffline: true });
+      this.logger.debug(`Asset is covered by an exclusion pattern, removing: ${asset.originalPath}`);
+      await this.assetRepository.remove(asset);
       return JobStatus.SUCCESS;
     }
 
     const fileExists = await this.storageRepository.checkFileExists(asset.originalPath, R_OK);
     if (!fileExists) {
-      this.logger.debug(`Asset is no longer found on disk, marking offline: ${asset.originalPath}`);
-      await this.assetRepository.update({ id: asset.id, isOffline: true });
+      this.logger.debug(`Asset is no longer found on disk, removing: ${asset.originalPath}`);
+      await this.assetRepository.remove(asset);
       return JobStatus.SUCCESS;
     }
 
     this.logger.verbose(
-      `Asset is found on disk, not covered by an exclusion pattern, and is in an import path, keeping online: ${asset.originalPath}`,
+      `Asset is found on disk, not covered by an exclusion pattern, and is in an import path, doing nothing: ${asset.originalPath}`,
     );
-
-    return JobStatus.SUCCESS;
-  }
-
-  async handleRemoveOffline(job: IEntityJob): Promise<JobStatus> {
-    this.logger.debug(`Removing offline assets for library ${job.id}`);
-
-    const assetPagination = usePagination(JOBS_LIBRARY_PAGINATION_SIZE, (pagination) =>
-      this.assetRepository.getWith(pagination, WithProperty.IS_OFFLINE, job.id, true),
-    );
-
-    let offlineAssets = 0;
-    for await (const assets of assetPagination) {
-      offlineAssets += assets.length;
-      if (assets.length > 0) {
-        this.logger.debug(`Discovered ${offlineAssets} offline assets in library ${job.id}`);
-        await this.jobRepository.queueAll(
-          assets.map((asset) => ({
-            name: JobName.ASSET_DELETION,
-            data: {
-              id: asset.id,
-              deleteOnDisk: false,
-            },
-          })),
-        );
-        this.logger.verbose(`Queued deletion of ${assets.length} offline assets in library ${job.id}`);
-      }
-    }
-
-    if (offlineAssets) {
-      this.logger.debug(`Finished queueing deletion of ${offlineAssets} offline assets for library ${job.id}`);
-    } else {
-      this.logger.debug(`Found no offline assets to delete from library ${job.id}`);
-    }
 
     return JobStatus.SUCCESS;
   }
@@ -680,7 +619,7 @@ export class LibraryService {
     return JobStatus.SUCCESS;
   }
 
-  async handleQueueScanRemoved(job: IEntityJob): Promise<JobStatus> {
+  async handleQueueRemoveDeleted(job: IEntityJob): Promise<JobStatus> {
     const library = await this.repository.get(job.id);
     if (!library) {
       return JobStatus.SKIPPED;
@@ -689,24 +628,24 @@ export class LibraryService {
     this.logger.log(`Scanning library ${library.id} for removed assets`);
 
     const onlineAssets = usePagination(JOBS_LIBRARY_PAGINATION_SIZE, (pagination) =>
-      this.assetRepository.getWith(pagination, WithProperty.IS_ONLINE, job.id),
+      this.assetRepository.getAll(pagination, { libraryId: job.id }),
     );
 
-    let onlineAssetCount = 0;
+    let assetCount = 0;
     for await (const assets of onlineAssets) {
-      onlineAssetCount += assets.length;
-      this.logger.debug(`Discovered ${onlineAssetCount} asset(s) in library ${library.id}...`);
+      assetCount += assets.length;
+      this.logger.debug(`Discovered ${assetCount} asset(s) in library ${library.id}...`);
       await this.jobRepository.queueAll(
         assets.map((asset) => ({
-          name: JobName.LIBRARY_CHECK_OFFLINE,
+          name: JobName.LIBRARY_REMOVE_DELETED,
           data: { id: asset.id, importPaths: library.importPaths, exclusionPatterns: library.exclusionPatterns },
         })),
       );
-      this.logger.debug(`Queued online check of ${assets.length} asset(s) in library ${library.id}...`);
+      this.logger.debug(`Queued check of ${assets.length} asset(s) in library ${library.id}...`);
     }
 
-    if (onlineAssetCount) {
-      this.logger.log(`Finished queueing online check of ${onlineAssetCount} assets for library ${library.id}`);
+    if (assetCount) {
+      this.logger.log(`Finished queueing check of ${assetCount} assets for library ${library.id}`);
     }
 
     return JobStatus.SUCCESS;

@@ -113,9 +113,6 @@ export class AssetEntity {
   @Column({ type: 'boolean', default: false })
   isExternal!: boolean;
 
-  @Column({ type: 'boolean', default: false })
-  isOffline!: boolean;
-
   @Column({ type: 'bytea' })
   @Index()
   checksum!: Buffer; // sha1 checksum

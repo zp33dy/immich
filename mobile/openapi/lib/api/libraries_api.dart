@@ -243,46 +243,6 @@ class LibrariesApi {
     return null;
   }
 
-  /// Performs an HTTP 'POST /libraries/{id}/removeOffline' operation and returns the [Response].
-  /// Parameters:
-  ///
-  /// * [String] id (required):
-  Future<Response> removeOfflineAssetsWithHttpInfo(String id,) async {
-    // ignore: prefer_const_declarations
-    final path = r'/libraries/{id}/removeOffline'
-      .replaceAll('{id}', id);
-
-    // ignore: prefer_final_locals
-    Object? postBody;
-
-    final queryParams = <QueryParam>[];
-    final headerParams = <String, String>{};
-    final formParams = <String, String>{};
-
-    const contentTypes = <String>[];
-
-
-    return apiClient.invokeAPI(
-      path,
-      'POST',
-      queryParams,
-      postBody,
-      headerParams,
-      formParams,
-      contentTypes.isEmpty ? null : contentTypes.first,
-    );
-  }
-
-  /// Parameters:
-  ///
-  /// * [String] id (required):
-  Future<void> removeOfflineAssets(String id,) async {
-    final response = await removeOfflineAssetsWithHttpInfo(id,);
-    if (response.statusCode >= HttpStatus.badRequest) {
-      throw ApiException(response.statusCode, await _decodeBodyBytes(response));
-    }
-  }
-
   /// Performs an HTTP 'POST /libraries/{id}/scan' operation and returns the [Response].
   /// Parameters:
   ///
@@ -327,13 +287,13 @@ class LibrariesApi {
     }
   }
 
-  /// Performs an HTTP 'POST /libraries/{id}/scanRemoved' operation and returns the [Response].
+  /// Performs an HTTP 'POST /libraries/{id}/removeDeleted' operation and returns the [Response].
   /// Parameters:
   ///
   /// * [String] id (required):
   Future<Response> scanRemovedAssetsWithHttpInfo(String id,) async {
     // ignore: prefer_const_declarations
-    final path = r'/libraries/{id}/scanRemoved'
+    final path = r'/libraries/{id}/removeDeleted'
       .replaceAll('{id}', id);
 
     // ignore: prefer_final_locals

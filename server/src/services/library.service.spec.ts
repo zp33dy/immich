@@ -309,7 +309,7 @@ describe(LibraryService.name, () => {
       storageMock.walk.mockImplementation(async function* generator() {});
       assetMock.getWith.mockResolvedValue({ items: [assetStub.external], hasNextPage: false });
 
-      await sut.handleQueueScanRemoved(mockLibraryJob);
+      await sut.handleQueueRemoveDeleted(mockLibraryJob);
 
       expect(jobMock.queueAll).toHaveBeenCalledWith([
         {
@@ -332,7 +332,7 @@ describe(LibraryService.name, () => {
 
       libraryMock.get.mockResolvedValue(null);
 
-      await expect(sut.handleQueueScanRemoved(mockLibraryJob)).resolves.toBe(JobStatus.SKIPPED);
+      await expect(sut.handleQueueRemoveDeleted(mockLibraryJob)).resolves.toBe(JobStatus.SKIPPED);
     });
   });
 
@@ -346,7 +346,7 @@ describe(LibraryService.name, () => {
 
       assetMock.getById.mockResolvedValue(null);
 
-      await expect(sut.handleCheckAssetOnlineStatus(mockAssetJob)).resolves.toBe(JobStatus.SKIPPED);
+      await expect(sut.handleRemoveDeleted(mockAssetJob)).resolves.toBe(JobStatus.SKIPPED);
 
       expect(assetMock.update).not.toHaveBeenCalled();
     });
@@ -360,7 +360,7 @@ describe(LibraryService.name, () => {
 
       assetMock.getById.mockResolvedValue(assetStub.offline);
 
-      await expect(sut.handleCheckAssetOnlineStatus(mockAssetJob)).resolves.toBe(JobStatus.SUCCESS);
+      await expect(sut.handleRemoveDeleted(mockAssetJob)).resolves.toBe(JobStatus.SUCCESS);
 
       expect(assetMock.update).not.toHaveBeenCalled();
     });
@@ -374,7 +374,7 @@ describe(LibraryService.name, () => {
 
       assetMock.getById.mockResolvedValue(assetStub.external);
 
-      await expect(sut.handleCheckAssetOnlineStatus(mockAssetJob)).resolves.toBe(JobStatus.SUCCESS);
+      await expect(sut.handleRemoveDeleted(mockAssetJob)).resolves.toBe(JobStatus.SUCCESS);
 
       expect(assetMock.update).toHaveBeenCalledWith({ id: assetStub.external.id, isOffline: true });
     });
@@ -388,7 +388,7 @@ describe(LibraryService.name, () => {
 
       assetMock.getById.mockResolvedValue(assetStub.external);
 
-      await expect(sut.handleCheckAssetOnlineStatus(mockAssetJob)).resolves.toBe(JobStatus.SUCCESS);
+      await expect(sut.handleRemoveDeleted(mockAssetJob)).resolves.toBe(JobStatus.SUCCESS);
 
       expect(assetMock.update).toHaveBeenCalledWith({ id: assetStub.external.id, isOffline: true });
     });
@@ -403,7 +403,7 @@ describe(LibraryService.name, () => {
       assetMock.getById.mockResolvedValue(assetStub.external);
       storageMock.checkFileExists.mockResolvedValue(true);
 
-      await expect(sut.handleCheckAssetOnlineStatus(mockAssetJob)).resolves.toBe(JobStatus.SUCCESS);
+      await expect(sut.handleRemoveDeleted(mockAssetJob)).resolves.toBe(JobStatus.SUCCESS);
 
       expect(assetMock.update).toHaveBeenCalledWith({ id: assetStub.external.id, isOffline: true });
     });
@@ -418,7 +418,7 @@ describe(LibraryService.name, () => {
       assetMock.getById.mockResolvedValue(assetStub.external);
       storageMock.checkFileExists.mockResolvedValue(true);
 
-      await expect(sut.handleCheckAssetOnlineStatus(mockAssetJob)).resolves.toBe(JobStatus.SUCCESS);
+      await expect(sut.handleRemoveDeleted(mockAssetJob)).resolves.toBe(JobStatus.SUCCESS);
 
       expect(assetMock.update).not.toHaveBeenCalled();
     });
@@ -1337,7 +1337,7 @@ describe(LibraryService.name, () => {
       expect(jobMock.queue.mock.calls).toEqual([
         [
           {
-            name: JobName.LIBRARY_REMOVE_OFFLINE,
+            name: JobName.LIBRARY_REMOVE_DELETED,
             data: {
               id: libraryStub.externalLibrary1.id,
             },

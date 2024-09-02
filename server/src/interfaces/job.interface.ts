@@ -79,8 +79,7 @@ export enum JobName {
   LIBRARY_SCAN_NEW = 'library-scan-new',
   LIBRARY_SCAN_REMOVED = 'library-scan-removed',
   LIBRARY_SCAN_ASSET = 'library-refresh-asset',
-  LIBRARY_REMOVE_OFFLINE = 'library-remove-offline',
-  LIBRARY_CHECK_OFFLINE = 'library-check-offline',
+  LIBRARY_REMOVE_DELETED = 'library-remove-deleted',
   LIBRARY_DELETE = 'library-delete',
   LIBRARY_QUEUE_SCAN_ALL = 'library-queue-all-refresh',
   LIBRARY_QUEUE_CLEANUP = 'library-queue-cleanup',
@@ -281,10 +280,9 @@ export type JobItem =
   | { name: JobName.LIBRARY_SCAN_ASSET; data: ILibraryFileJob }
   | { name: JobName.LIBRARY_SCAN_NEW; data: ILibraryRefreshJob }
   | { name: JobName.LIBRARY_SCAN_REMOVED; data: IEntityJob }
-  | { name: JobName.LIBRARY_REMOVE_OFFLINE; data: IEntityJob }
+  | { name: JobName.LIBRARY_REMOVE_DELETED; data: IEntityJob }
   | { name: JobName.LIBRARY_DELETE; data: IEntityJob }
   | { name: JobName.LIBRARY_QUEUE_SCAN_ALL; data: IBaseJob }
-  | { name: JobName.LIBRARY_CHECK_OFFLINE; data: IEntityJob }
   | { name: JobName.LIBRARY_QUEUE_CLEANUP; data: IBaseJob }
 
   // Notification
