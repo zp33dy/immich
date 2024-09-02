@@ -30,17 +30,15 @@ If you add metadata to an external asset in any way (i.e. add it to an album or 
 
 ### Deleted External Assets
 
-If you delete assets from disk, move asset files, edit import paths, or adding exclusion patterns, you need to perform a separate scan for Immich to pick up the changes:
-
-- Remove Deleted Assets: Checks every asset in the library and removes it if the corresponding asset on disk is not accessible
+If you delete assets from disk, move asset files, edit import paths, or adding exclusion patterns, you need to select "Remove Deleted Assets". This checks every asset in the library and removes it if the corresponding asset on disk is not accessible. Immich will also check every file against the import paths and exclusion patterns and remove any assets that violate them.
 
 :::caution
 
-This will also remove any file from Immich that is currently not found on disk, including offline network shares.
+This will also remove any asset from Immich that is currently not found on disk, including offline network shares.
 
 :::
 
-This scan is never run automatically and must be manually triggered from the external library settings page. The scan also checks every file against the import paths and exclusion patterns and deletes assets if needed.
+In order to prevent accidental deletion, this scan is never run automatically and must be manually triggered.
 
 ### Import Paths
 
