@@ -484,148 +484,181 @@ describe('/libraries', () => {
       });
     });
 
-    it('should delete an asset if its file is missing', async () => {
-      const library = await utils.createLibrary(admin.accessToken, {
-        ownerId: admin.userId,
-        importPaths: [`${testAssetDirInternal}/temp/offline`],
+    describe('with removeDeleted=true', () => {
+      it('should delete an asset if its file is missing', async () => {
+        const library = await utils.createLibrary(admin.accessToken, {
+          ownerId: admin.userId,
+          importPaths: [`${testAssetDirInternal}/temp/offline`],
+        });
+
+        utils.createImageFile(`${testAssetDir}/temp/offline/offline.png`);
+
+        await scan(admin.accessToken, library.id);
+        await utils.waitForQueueFinish(admin.accessToken, 'library');
+
+        const { assets } = await utils.metadataSearch(admin.accessToken, { libraryId: library.id });
+        expect(assets.count).toBe(1);
+
+        utils.removeImageFile(`${testAssetDir}/temp/offline/offline.png`);
+
+        const { status } = await request(app)
+          .post(`/libraries/${library.id}/scan`)
+          .set('Authorization', `Bearer ${admin.accessToken}`)
+          .send({ removeDeleted: true });
+        expect(status).toBe(204);
+
+        await utils.waitForQueueFinish(admin.accessToken, 'library');
+
+        const { assets: newAssets } = await utils.metadataSearch(admin.accessToken, { libraryId: library.id });
+        expect(newAssets.items).toEqual([]);
       });
 
-      utils.createImageFile(`${testAssetDir}/temp/offline/offline.png`);
+      it("should return 400 if any import path isn't accessible", async () => {
+        const library = await utils.createLibrary(admin.accessToken, {
+          ownerId: admin.userId,
+          importPaths: [`${testAssetDirInternal}/temp/offline`],
+        });
 
-      await scan(admin.accessToken, library.id);
-      await utils.waitForQueueFinish(admin.accessToken, 'library');
+        utils.createImageFile(`${testAssetDir}/temp/offline/offline.png`);
 
-      const { assets } = await utils.metadataSearch(admin.accessToken, { libraryId: library.id });
-      expect(assets.count).toBe(1);
+        await scan(admin.accessToken, library.id);
+        await utils.waitForQueueFinish(admin.accessToken, 'library');
 
-      utils.removeImageFile(`${testAssetDir}/temp/offline/offline.png`);
+        const { assets } = await utils.metadataSearch(admin.accessToken, { libraryId: library.id });
+        expect(assets.count).toBe(1);
 
-      const { status } = await request(app)
-        .post(`/libraries/${library.id}/scan`)
-        .set('Authorization', `Bearer ${admin.accessToken}`)
-        .send({ removeDeleted: true });
-      expect(status).toBe(204);
+        await request(app)
+          .put(`/libraries/${library.id}`)
+          .set('Authorization', `Bearer ${admin.accessToken}`)
+          .send({ importPaths: [`${testAssetDirInternal}/temp/nonexistent`] });
 
-      await utils.waitForQueueFinish(admin.accessToken, 'library');
+        utils.removeImageFile(`${testAssetDir}/temp/offline/offline.png`);
 
-      const { assets: newAssets } = await utils.metadataSearch(admin.accessToken, { libraryId: library.id });
-      expect(newAssets.items).toEqual([]);
-    });
+        const { status } = await request(app)
+          .post(`/libraries/${library.id}/scan`)
+          .set('Authorization', `Bearer ${admin.accessToken}`)
+          .send({ removeDeleted: true });
+        expect(status).toBe(400);
 
-    it('should delete an asset if its file is not in an import paths', async () => {
-      const library = await utils.createLibrary(admin.accessToken, {
-        ownerId: admin.userId,
-        importPaths: [`${testAssetDirInternal}/temp/offline`],
+        const { assets: newAssets } = await utils.metadataSearch(admin.accessToken, { libraryId: library.id });
+        expect(newAssets.items).toEqual(assets.items);
       });
 
-      utils.createImageFile(`${testAssetDir}/temp/offline/offline.png`);
+      it('should delete an asset if its file is not in an import paths', async () => {
+        const library = await utils.createLibrary(admin.accessToken, {
+          ownerId: admin.userId,
+          importPaths: [`${testAssetDirInternal}/temp/offline`],
+        });
 
-      await scan(admin.accessToken, library.id);
-      await utils.waitForQueueFinish(admin.accessToken, 'library');
+        utils.createImageFile(`${testAssetDir}/temp/offline/offline.png`);
 
-      await request(app)
-        .put(`/libraries/${library.id}`)
-        .set('Authorization', `Bearer ${admin.accessToken}`)
-        .send({ importPaths: [`${testAssetDirInternal}/temp/directoryA`] });
+        await scan(admin.accessToken, library.id);
+        await utils.waitForQueueFinish(admin.accessToken, 'library');
 
-      const { status } = await request(app)
-        .post(`/libraries/${library.id}/scan`)
-        .set('Authorization', `Bearer ${admin.accessToken}`)
-        .send({ removeDeleted: true });
-      expect(status).toBe(204);
+        await request(app)
+          .put(`/libraries/${library.id}`)
+          .set('Authorization', `Bearer ${admin.accessToken}`)
+          .send({ importPaths: [`${testAssetDirInternal}/temp/directoryA`] });
 
-      await utils.waitForQueueFinish(admin.accessToken, 'library');
+        const { status } = await request(app)
+          .post(`/libraries/${library.id}/scan`)
+          .set('Authorization', `Bearer ${admin.accessToken}`)
+          .send({ removeDeleted: true });
+        expect(status).toBe(204);
 
-      const { assets } = await utils.metadataSearch(admin.accessToken, { libraryId: library.id });
+        await utils.waitForQueueFinish(admin.accessToken, 'library');
 
-      expect(assets.items).toEqual([]);
+        const { assets } = await utils.metadataSearch(admin.accessToken, { libraryId: library.id });
 
-      utils.removeImageFile(`${testAssetDir}/temp/offline/offline.png`);
-    });
+        expect(assets.items).toEqual([]);
 
-    it('should delete an asset if its file is covered by an exclusion pattern', async () => {
-      const library = await utils.createLibrary(admin.accessToken, {
-        ownerId: admin.userId,
-        importPaths: [`${testAssetDirInternal}/temp`],
+        utils.removeImageFile(`${testAssetDir}/temp/offline/offline.png`);
       });
 
-      await scan(admin.accessToken, library.id);
-      await utils.waitForQueueFinish(admin.accessToken, 'library');
+      it('should delete an asset if its file is covered by an exclusion pattern', async () => {
+        const library = await utils.createLibrary(admin.accessToken, {
+          ownerId: admin.userId,
+          importPaths: [`${testAssetDirInternal}/temp`],
+        });
 
-      await request(app)
-        .put(`/libraries/${library.id}`)
-        .set('Authorization', `Bearer ${admin.accessToken}`)
-        .send({ exclusionPatterns: ['**/directoryB/**'] });
+        await scan(admin.accessToken, library.id);
+        await utils.waitForQueueFinish(admin.accessToken, 'library');
 
-      await scan(admin.accessToken, library.id, { removeDeleted: true });
-      await utils.waitForQueueFinish(admin.accessToken, 'library');
+        await request(app)
+          .put(`/libraries/${library.id}`)
+          .set('Authorization', `Bearer ${admin.accessToken}`)
+          .send({ exclusionPatterns: ['**/directoryB/**'] });
 
-      const { assets } = await utils.metadataSearch(admin.accessToken, { libraryId: library.id });
+        await scan(admin.accessToken, library.id, { removeDeleted: true });
+        await utils.waitForQueueFinish(admin.accessToken, 'library');
 
-      expect(assets.items).toEqual([
-        expect.objectContaining({
-          originalFileName: 'assetA.png',
-        }),
-      ]);
-    });
+        const { assets } = await utils.metadataSearch(admin.accessToken, { libraryId: library.id });
 
-    it('should delete a trashed asset if file is missing', async () => {
-      const library = await utils.createLibrary(admin.accessToken, {
-        ownerId: admin.userId,
-        importPaths: [`${testAssetDirInternal}/temp/offline`],
+        expect(assets.items).toEqual([
+          expect.objectContaining({
+            originalFileName: 'assetA.png',
+          }),
+        ]);
       });
 
-      utils.createImageFile(`${testAssetDir}/temp/offline/offline.png`);
+      it('should delete a trashed asset if file is missing', async () => {
+        const library = await utils.createLibrary(admin.accessToken, {
+          ownerId: admin.userId,
+          importPaths: [`${testAssetDirInternal}/temp/offline`],
+        });
 
-      await scan(admin.accessToken, library.id);
-      await utils.waitForQueueFinish(admin.accessToken, 'library');
+        utils.createImageFile(`${testAssetDir}/temp/offline/offline.png`);
 
-      const { assets: initialAssets } = await utils.metadataSearch(admin.accessToken, {
-        libraryId: library.id,
+        await scan(admin.accessToken, library.id);
+        await utils.waitForQueueFinish(admin.accessToken, 'library');
+
+        const { assets: initialAssets } = await utils.metadataSearch(admin.accessToken, {
+          libraryId: library.id,
+        });
+
+        expect(initialAssets.count).toBe(1);
+
+        const { status: deleteStatus } = await request(app)
+          .delete('/assets')
+          .send({ ids: [initialAssets.items[0].id] })
+          .set('Authorization', `Bearer ${admin.accessToken}`);
+        expect(deleteStatus).toBe(204);
+
+        utils.removeImageFile(`${testAssetDir}/temp/offline/offline.png`);
+
+        await scan(admin.accessToken, library.id, { removeDeleted: true });
+        await utils.waitForQueueFinish(admin.accessToken, 'library');
+
+        const { assets: assetsAfterDeletion } = await utils.metadataSearch(admin.accessToken, {
+          libraryId: library.id,
+        });
+        expect(assetsAfterDeletion.count).toBe(0);
       });
 
-      expect(initialAssets.count).toBe(1);
+      it('should not delete an online asset', async () => {
+        const library = await utils.createLibrary(admin.accessToken, {
+          ownerId: admin.userId,
+          importPaths: [`${testAssetDirInternal}/temp`],
+        });
 
-      const { status: deleteStatus } = await request(app)
-        .delete('/assets')
-        .send({ ids: [initialAssets.items[0].id] })
-        .set('Authorization', `Bearer ${admin.accessToken}`);
-      expect(deleteStatus).toBe(204);
+        await scan(admin.accessToken, library.id);
+        await utils.waitForQueueFinish(admin.accessToken, 'library');
 
-      utils.removeImageFile(`${testAssetDir}/temp/offline/offline.png`);
+        const { assets: assetsBefore } = await utils.metadataSearch(admin.accessToken, { libraryId: library.id });
+        expect(assetsBefore.count).toBeGreaterThan(1);
 
-      await scan(admin.accessToken, library.id, { removeDeleted: true });
-      await utils.waitForQueueFinish(admin.accessToken, 'library');
+        const { status } = await request(app)
+          .post(`/libraries/${library.id}/scan`)
+          .set('Authorization', `Bearer ${admin.accessToken}`)
+          .send({ scanLibraryDto: { removeDeleted: true } });
+        expect(status).toBe(204);
 
-      const { assets: assetsAfterDeletion } = await utils.metadataSearch(admin.accessToken, {
-        libraryId: library.id,
+        await utils.waitForQueueFinish(admin.accessToken, 'library');
+
+        const { assets } = await utils.metadataSearch(admin.accessToken, { libraryId: library.id });
+
+        expect(assets).toEqual(assetsBefore);
       });
-      expect(assetsAfterDeletion.count).toBe(0);
-    });
-
-    it('should not delete an online asset', async () => {
-      const library = await utils.createLibrary(admin.accessToken, {
-        ownerId: admin.userId,
-        importPaths: [`${testAssetDirInternal}/temp`],
-      });
-
-      await scan(admin.accessToken, library.id);
-      await utils.waitForQueueFinish(admin.accessToken, 'library');
-
-      const { assets: assetsBefore } = await utils.metadataSearch(admin.accessToken, { libraryId: library.id });
-      expect(assetsBefore.count).toBeGreaterThan(1);
-
-      const { status } = await request(app)
-        .post(`/libraries/${library.id}/scan`)
-        .set('Authorization', `Bearer ${admin.accessToken}`)
-        .send({ scanLibraryDto: { removeDeleted: true } });
-      expect(status).toBe(204);
-
-      await utils.waitForQueueFinish(admin.accessToken, 'library');
-
-      const { assets } = await utils.metadataSearch(admin.accessToken, { libraryId: library.id });
-
-      expect(assets).toEqual(assetsBefore);
     });
   });
 

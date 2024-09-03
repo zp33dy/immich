@@ -478,11 +478,22 @@ export class LibraryService {
   }
 
   async queueScan(id: string, dto: ScanLibraryDto) {
-    await this.findOrFail(id);
+    const library = await this.findOrFail(id);
 
     if (dto.removeDeleted) {
       if (dto.refreshAllFiles || dto.refreshModifiedFiles) {
         throw new BadRequestException('Cannot refresh and remove deleted assets at the same time');
+      }
+
+      // This is a safety check to ensure that the import paths are still valid
+      // For instance, if a network drive is offline we shouldn't delete everything
+      for (const importPath of library.importPaths) {
+        const validation = await this.validateImportPath(importPath);
+        if (!validation.isValid) {
+          throw new BadRequestException(
+            `Will not remove deleted assets from library ${library.id} because import path is invalid ${importPath}. Reason: ${validation.message}`,
+          );
+        }
       }
 
       await this.jobRepository.queue({ name: JobName.LIBRARY_QUEUE_REMOVE_DELETED, data: { id } });
