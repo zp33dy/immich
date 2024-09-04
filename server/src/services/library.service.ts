@@ -151,8 +151,15 @@ export class LibraryService {
           };
           return handlePromiseError(handler(), this.logger);
         },
-        onUnlink: () => {
-          // Don't do anything
+        onUnlink: (path) => {
+          const handler = async () => {
+            this.logger.debug(`Detected deleted file at ${path} in library ${library.id}`);
+            const asset = await this.assetRepository.getByLibraryIdAndOriginalPath(library.id, path);
+            if (asset && matcher(path)) {
+              await this.scanAssets(library.id, [path], library.ownerId);
+            }
+          };
+          return handlePromiseError(handler(), this.logger);
         },
         onError: (error) => {
           this.logger.error(`Library watcher for library ${library.id} encountered error: ${error}`);
@@ -202,7 +209,7 @@ export class LibraryService {
   async getStatistics(id: string): Promise<LibraryStatsResponseDto> {
     const statistics = await this.repository.getStatistics(id);
     if (!statistics) {
-      throw new BadRequestException('Library not found');
+      throw new BadRequestException(`Library ${id} not found`);
     }
     return statistics;
   }

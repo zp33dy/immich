@@ -1,5 +1,6 @@
 import { BadRequestException } from '@nestjs/common';
 import { Stats } from 'node:fs';
+import { Subject } from 'rxjs';
 import { SystemConfig } from 'src/config';
 import { SystemConfigCore } from 'src/cores/system-config.core';
 import { AssetTrashReason } from 'src/dtos/asset.dto';
@@ -78,6 +79,18 @@ describe(LibraryService.name, () => {
   });
 
   describe('onBootstrapEvent', () => {
+    const configSubject = new Subject();
+
+    const configCore = {
+      getConfig: vitest.fn().mockResolvedValue({
+        library: {
+          watch: { enabled: true },
+          scan: { cronExpression: '* * * * *', enabled: true },
+        },
+      }),
+      config$: configSubject.asObservable(),
+    };
+
     it('should init cron job and subscribe to config changes', async () => {
       systemMock.get.mockResolvedValue(systemConfigStub.libraryScan);
 
@@ -91,7 +104,7 @@ describe(LibraryService.name, () => {
             enabled: true,
             cronExpression: '0 1 * * *',
           },
-          watch: { enabled: false },
+          watch: { enabled: true },
         },
       } as SystemConfig);
 
@@ -374,7 +387,6 @@ describe(LibraryService.name, () => {
         id: libraryStub.externalLibrary1.id,
         ownerId: mockUser.id,
         assetPath: '/data/user1/photo.jpg',
-        force: false,
       };
 
       assetMock.getByLibraryIdAndOriginalPath.mockResolvedValue(null);
@@ -419,7 +431,6 @@ describe(LibraryService.name, () => {
         id: libraryStub.externalLibrary1.id,
         ownerId: mockUser.id,
         assetPath: '/data/user1/photo.jpg',
-        force: false,
       };
 
       assetMock.getByLibraryIdAndOriginalPath.mockResolvedValue(null);
@@ -465,7 +476,6 @@ describe(LibraryService.name, () => {
         id: libraryStub.externalLibrary1.id,
         ownerId: mockUser.id,
         assetPath: '/data/user1/video.mp4',
-        force: false,
       };
 
       assetMock.getByLibraryIdAndOriginalPath.mockResolvedValue(null);
@@ -518,7 +528,6 @@ describe(LibraryService.name, () => {
         id: libraryStub.externalLibrary1.id,
         ownerId: mockUser.id,
         assetPath: '/data/user1/photo.jpg',
-        force: false,
       };
 
       assetMock.getByLibraryIdAndOriginalPath.mockResolvedValue(null);
@@ -535,7 +544,6 @@ describe(LibraryService.name, () => {
         id: libraryStub.externalLibrary1.id,
         ownerId: mockUser.id,
         assetPath: assetStub.hasFileExtension.originalPath,
-        force: false,
       };
 
       storageMock.stat.mockResolvedValue({
@@ -557,7 +565,6 @@ describe(LibraryService.name, () => {
         id: libraryStub.externalLibrary1.id,
         ownerId: mockUser.id,
         assetPath: '/data/user1/photo.jpg',
-        force: false,
       };
 
       assetMock.getByLibraryIdAndOriginalPath.mockResolvedValue(assetStub.image);
@@ -694,7 +701,6 @@ describe(LibraryService.name, () => {
 
   describe('getStatistics', () => {
     it('should return library statistics', async () => {
-      libraryMock.get.mockResolvedValue(libraryStub.externalLibrary1);
       libraryMock.getStatistics.mockResolvedValue({ photos: 10, videos: 0, total: 10, usage: 1337 });
       await expect(sut.getStatistics(libraryStub.externalLibrary1.id)).resolves.toEqual({
         photos: 10,
