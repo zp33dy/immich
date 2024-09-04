@@ -296,7 +296,7 @@
                     icon={mdiDotsVertical}
                     title={$t('library_options')}
                   >
-                    <MenuOption onClick={() => onScanClicked(library)} text={$t('scan_new_library_files')} />
+                    <MenuOption onClick={() => onScanClicked(library)} text={$t('scan_library')} />
                     <hr />
                     <MenuOption onClick={() => onRenameClicked(index)} text={$t('rename')} />
                     <MenuOption onClick={() => onEditImportPathClicked(index)} text={$t('edit_import_paths')} />
