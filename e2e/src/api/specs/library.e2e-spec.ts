@@ -294,10 +294,10 @@ describe('/libraries', () => {
       const { status } = await request(app)
         .post(`/libraries/${library.id}/scan`)
         .set('Authorization', `Bearer ${admin.accessToken}`)
-        .send({ scanLibraryDto: {} });
+        .send();
       expect(status).toBe(204);
 
-      await utils.waitForWebsocketEvent({ event: 'assetUpload', total: 1 });
+      await utils.waitForQueueFinish(admin.accessToken, 'library');
 
       const { assets } = await utils.metadataSearch(admin.accessToken, {
         originalPath: `${testAssetDirInternal}/temp/directoryA/assetA.png`,
@@ -315,10 +315,10 @@ describe('/libraries', () => {
       const { status } = await request(app)
         .post(`/libraries/${library.id}/scan`)
         .set('Authorization', `Bearer ${admin.accessToken}`)
-        .send({ scanLibraryDto: {} });
+        .send();
       expect(status).toBe(204);
 
-      await utils.waitForWebsocketEvent({ event: 'assetUpload', total: 1 });
+      await utils.waitForQueueFinish(admin.accessToken, 'library');
 
       const { assets } = await utils.metadataSearch(admin.accessToken, { libraryId: library.id });
 
@@ -335,10 +335,10 @@ describe('/libraries', () => {
       const { status } = await request(app)
         .post(`/libraries/${library.id}/scan`)
         .set('Authorization', `Bearer ${admin.accessToken}`)
-        .send({ scanLibraryDto: {} });
+        .send();
       expect(status).toBe(204);
 
-      await utils.waitForWebsocketEvent({ event: 'assetUpload', total: 2 });
+      await utils.waitForQueueFinish(admin.accessToken, 'library');
 
       const { assets } = await utils.metadataSearch(admin.accessToken, { libraryId: library.id });
 
@@ -358,7 +358,7 @@ describe('/libraries', () => {
       const { status } = await request(app)
         .post(`/libraries/${library.id}/scan`)
         .set('Authorization', `Bearer ${admin.accessToken}`)
-        .send({ scanLibraryDto: {} });
+        .send();
       expect(status).toBe(204);
 
       await utils.waitForQueueFinish(admin.accessToken, 'library');
@@ -376,282 +376,181 @@ describe('/libraries', () => {
       utils.removeImageFile(`${testAssetDir}/temp/directoryC/assetC.png`);
     });
 
-    describe('with refreshModifiedFiles=true', () => {
-      it('should reimport modified files', async () => {
-        const library = await utils.createLibrary(admin.accessToken, {
-          ownerId: admin.userId,
-          importPaths: [`${testAssetDirInternal}/temp`],
-        });
-
-        utils.createImageFile(`${testAssetDir}/temp/directoryA/assetB.jpg`);
-        await utimes(`${testAssetDir}/temp/directoryA/assetB.jpg`, 447_775_200_000);
-
-        await scan(admin.accessToken, library.id);
-        await utils.waitForQueueFinish(admin.accessToken, 'library');
-
-        cpSync(`${testAssetDir}/albums/nature/tanners_ridge.jpg`, `${testAssetDir}/temp/directoryA/assetB.jpg`);
-        await utimes(`${testAssetDir}/temp/directoryA/assetB.jpg`, 447_775_200_001);
-
-        const { status } = await request(app)
-          .post(`/libraries/${library.id}/scan`)
-          .set('Authorization', `Bearer ${admin.accessToken}`)
-          .send({ refreshModifiedFiles: true });
-        expect(status).toBe(204);
-
-        await utils.waitForQueueFinish(admin.accessToken, 'library');
-        await utils.waitForQueueFinish(admin.accessToken, 'metadataExtraction');
-        utils.removeImageFile(`${testAssetDir}/temp/directoryA/assetB.jpg`);
-
-        const { assets } = await utils.metadataSearch(admin.accessToken, {
-          libraryId: library.id,
-          model: 'NIKON D750',
-        });
-        expect(assets.count).toBe(1);
+    it('should reimport modified files', async () => {
+      const library = await utils.createLibrary(admin.accessToken, {
+        ownerId: admin.userId,
+        importPaths: [`${testAssetDirInternal}/temp`],
       });
 
-      it('should not reimport unmodified files', async () => {
-        const library = await utils.createLibrary(admin.accessToken, {
-          ownerId: admin.userId,
-          importPaths: [`${testAssetDirInternal}/temp`],
-        });
+      utils.createImageFile(`${testAssetDir}/temp/directoryA/assetB.jpg`);
+      await utimes(`${testAssetDir}/temp/directoryA/assetB.jpg`, 447_775_200_000);
 
-        utils.createImageFile(`${testAssetDir}/temp/directoryA/assetB.jpg`);
-        await utimes(`${testAssetDir}/temp/directoryA/assetB.jpg`, 447_775_200_000);
+      await scan(admin.accessToken, library.id);
+      await utils.waitForQueueFinish(admin.accessToken, 'library');
 
-        await scan(admin.accessToken, library.id);
-        await utils.waitForQueueFinish(admin.accessToken, 'library');
+      cpSync(`${testAssetDir}/albums/nature/tanners_ridge.jpg`, `${testAssetDir}/temp/directoryA/assetB.jpg`);
+      await utimes(`${testAssetDir}/temp/directoryA/assetB.jpg`, 447_775_200_001);
 
-        cpSync(`${testAssetDir}/albums/nature/tanners_ridge.jpg`, `${testAssetDir}/temp/directoryA/assetB.jpg`);
-        await utimes(`${testAssetDir}/temp/directoryA/assetB.jpg`, 447_775_200_000);
+      const { status } = await request(app)
+        .post(`/libraries/${library.id}/scan`)
+        .set('Authorization', `Bearer ${admin.accessToken}`)
+        .send({ refreshModifiedFiles: true });
+      expect(status).toBe(204);
 
-        const { status } = await request(app)
-          .post(`/libraries/${library.id}/scan`)
-          .set('Authorization', `Bearer ${admin.accessToken}`)
-          .send({ refreshModifiedFiles: true });
-        expect(status).toBe(204);
+      await utils.waitForQueueFinish(admin.accessToken, 'library');
+      await utils.waitForQueueFinish(admin.accessToken, 'metadataExtraction');
+      utils.removeImageFile(`${testAssetDir}/temp/directoryA/assetB.jpg`);
 
-        await utils.waitForQueueFinish(admin.accessToken, 'library');
-        await utils.waitForQueueFinish(admin.accessToken, 'metadataExtraction');
-        utils.removeImageFile(`${testAssetDir}/temp/directoryA/assetB.jpg`);
-
-        const { assets } = await utils.metadataSearch(admin.accessToken, {
-          libraryId: library.id,
-          model: 'NIKON D750',
-        });
-        expect(assets.count).toBe(0);
+      const { assets } = await utils.metadataSearch(admin.accessToken, {
+        libraryId: library.id,
+        model: 'NIKON D750',
       });
+      expect(assets.count).toBe(1);
     });
 
-    describe('with refreshAllFiles=true', () => {
-      it("should reimport file even if timestamp didn't change", async () => {
-        const library = await utils.createLibrary(admin.accessToken, {
-          ownerId: admin.userId,
-          importPaths: [`${testAssetDirInternal}/temp`],
-        });
-
-        utils.createImageFile(`${testAssetDir}/temp/directoryA/assetB.jpg`);
-        await utimes(`${testAssetDir}/temp/directoryA/assetB.jpg`, 447_775_200_000);
-
-        await scan(admin.accessToken, library.id);
-        await utils.waitForQueueFinish(admin.accessToken, 'library');
-
-        cpSync(`${testAssetDir}/albums/nature/tanners_ridge.jpg`, `${testAssetDir}/temp/directoryA/assetB.jpg`);
-        await utimes(`${testAssetDir}/temp/directoryA/assetB.jpg`, 447_775_200_000);
-
-        const { status } = await request(app)
-          .post(`/libraries/${library.id}/scan`)
-          .set('Authorization', `Bearer ${admin.accessToken}`)
-          .send({ refreshAllFiles: true });
-        expect(status).toBe(204);
-
-        await utils.waitForQueueFinish(admin.accessToken, 'library');
-        await utils.waitForQueueFinish(admin.accessToken, 'metadataExtraction');
-
-        const { assets } = await utils.metadataSearch(admin.accessToken, {
-          libraryId: library.id,
-          model: 'NIKON D750',
-        });
-        expect(assets.count).toBe(1);
-
-        utils.removeImageFile(`${testAssetDir}/temp/directoryA/assetB.jpg`);
+    it('should not reimport unmodified files', async () => {
+      const library = await utils.createLibrary(admin.accessToken, {
+        ownerId: admin.userId,
+        importPaths: [`${testAssetDirInternal}/temp`],
       });
+
+      utils.createImageFile(`${testAssetDir}/temp/directoryA/assetB.jpg`);
+      await utimes(`${testAssetDir}/temp/directoryA/assetB.jpg`, 447_775_200_000);
+
+      await scan(admin.accessToken, library.id);
+      await utils.waitForQueueFinish(admin.accessToken, 'library');
+
+      cpSync(`${testAssetDir}/albums/nature/tanners_ridge.jpg`, `${testAssetDir}/temp/directoryA/assetB.jpg`);
+      await utimes(`${testAssetDir}/temp/directoryA/assetB.jpg`, 447_775_200_000);
+
+      const { status } = await request(app)
+        .post(`/libraries/${library.id}/scan`)
+        .set('Authorization', `Bearer ${admin.accessToken}`)
+        .send({ refreshModifiedFiles: true });
+      expect(status).toBe(204);
+
+      await utils.waitForQueueFinish(admin.accessToken, 'library');
+      await utils.waitForQueueFinish(admin.accessToken, 'metadataExtraction');
+      utils.removeImageFile(`${testAssetDir}/temp/directoryA/assetB.jpg`);
+
+      const { assets } = await utils.metadataSearch(admin.accessToken, {
+        libraryId: library.id,
+        model: 'NIKON D750',
+      });
+      expect(assets.count).toBe(0);
     });
 
-    describe('with removeDeleted=true', () => {
-      it('should delete an asset if its file is missing', async () => {
-        const library = await utils.createLibrary(admin.accessToken, {
-          ownerId: admin.userId,
-          importPaths: [`${testAssetDirInternal}/temp/offline`],
-        });
-
-        utils.createImageFile(`${testAssetDir}/temp/offline/offline.png`);
-
-        await scan(admin.accessToken, library.id);
-        await utils.waitForQueueFinish(admin.accessToken, 'library');
-
-        const { assets } = await utils.metadataSearch(admin.accessToken, { libraryId: library.id });
-        expect(assets.count).toBe(1);
-
-        utils.removeImageFile(`${testAssetDir}/temp/offline/offline.png`);
-
-        const { status } = await request(app)
-          .post(`/libraries/${library.id}/scan`)
-          .set('Authorization', `Bearer ${admin.accessToken}`)
-          .send({ removeDeleted: true });
-        expect(status).toBe(204);
-
-        await utils.waitForQueueFinish(admin.accessToken, 'library');
-
-        const { assets: newAssets } = await utils.metadataSearch(admin.accessToken, { libraryId: library.id });
-        expect(newAssets.items).toEqual([]);
+    it('should trash an asset if its file is missing', async () => {
+      const library = await utils.createLibrary(admin.accessToken, {
+        ownerId: admin.userId,
+        importPaths: [`${testAssetDirInternal}/temp/offline`],
       });
 
-      it("should return 400 if any import path isn't accessible", async () => {
-        const library = await utils.createLibrary(admin.accessToken, {
-          ownerId: admin.userId,
-          importPaths: [`${testAssetDirInternal}/temp/offline`],
-        });
+      utils.createImageFile(`${testAssetDir}/temp/offline/offline.png`);
 
-        utils.createImageFile(`${testAssetDir}/temp/offline/offline.png`);
+      await scan(admin.accessToken, library.id);
+      await utils.waitForQueueFinish(admin.accessToken, 'library');
 
-        await scan(admin.accessToken, library.id);
-        await utils.waitForQueueFinish(admin.accessToken, 'library');
+      const { assets } = await utils.metadataSearch(admin.accessToken, { libraryId: library.id });
+      expect(assets.count).toBe(1);
 
-        const { assets } = await utils.metadataSearch(admin.accessToken, { libraryId: library.id });
-        expect(assets.count).toBe(1);
+      utils.removeImageFile(`${testAssetDir}/temp/offline/offline.png`);
 
-        await request(app)
-          .put(`/libraries/${library.id}`)
-          .set('Authorization', `Bearer ${admin.accessToken}`)
-          .send({ importPaths: [`${testAssetDirInternal}/temp/nonexistent`] });
+      const { status } = await request(app)
+        .post(`/libraries/${library.id}/scan`)
+        .set('Authorization', `Bearer ${admin.accessToken}`)
+        .send({ removeDeleted: true });
+      expect(status).toBe(204);
 
-        utils.removeImageFile(`${testAssetDir}/temp/offline/offline.png`);
+      await utils.waitForQueueFinish(admin.accessToken, 'library');
 
-        const { status } = await request(app)
-          .post(`/libraries/${library.id}/scan`)
-          .set('Authorization', `Bearer ${admin.accessToken}`)
-          .send({ removeDeleted: true });
-        expect(status).toBe(400);
+      const { assets: newAssets } = await utils.metadataSearch(admin.accessToken, { libraryId: library.id });
+      expect(newAssets.items).toEqual([]);
+    });
 
-        const { assets: newAssets } = await utils.metadataSearch(admin.accessToken, { libraryId: library.id });
-        expect(newAssets.items).toEqual(assets.items);
+    it('should trash an asset if its file is not in any import path', async () => {
+      const library = await utils.createLibrary(admin.accessToken, {
+        ownerId: admin.userId,
+        importPaths: [`${testAssetDirInternal}/temp/offline`],
       });
 
-      it('should delete an asset if its file is not in an import paths', async () => {
-        const library = await utils.createLibrary(admin.accessToken, {
-          ownerId: admin.userId,
-          importPaths: [`${testAssetDirInternal}/temp/offline`],
-        });
+      utils.createImageFile(`${testAssetDir}/temp/offline/offline.png`);
 
-        utils.createImageFile(`${testAssetDir}/temp/offline/offline.png`);
+      await scan(admin.accessToken, library.id);
+      await utils.waitForQueueFinish(admin.accessToken, 'library');
 
-        await scan(admin.accessToken, library.id);
-        await utils.waitForQueueFinish(admin.accessToken, 'library');
+      utils.createDirectory(`${testAssetDir}/temp/another-path/`);
 
-        await request(app)
-          .put(`/libraries/${library.id}`)
-          .set('Authorization', `Bearer ${admin.accessToken}`)
-          .send({ importPaths: [`${testAssetDirInternal}/temp/directoryA`] });
+      await request(app)
+        .put(`/libraries/${library.id}`)
+        .set('Authorization', `Bearer ${admin.accessToken}`)
+        .send({ importPaths: [`${testAssetDirInternal}/temp/another-path/`] });
 
-        const { status } = await request(app)
-          .post(`/libraries/${library.id}/scan`)
-          .set('Authorization', `Bearer ${admin.accessToken}`)
-          .send({ removeDeleted: true });
-        expect(status).toBe(204);
+      const { status } = await request(app)
+        .post(`/libraries/${library.id}/scan`)
+        .set('Authorization', `Bearer ${admin.accessToken}`)
+        .send();
+      expect(status).toBe(204);
 
-        await utils.waitForQueueFinish(admin.accessToken, 'library');
+      await utils.waitForQueueFinish(admin.accessToken, 'library');
 
-        const { assets } = await utils.metadataSearch(admin.accessToken, { libraryId: library.id });
+      const { assets } = await utils.metadataSearch(admin.accessToken, { libraryId: library.id });
 
-        expect(assets.items).toEqual([]);
+      expect(assets.items).toEqual([]);
 
-        utils.removeImageFile(`${testAssetDir}/temp/offline/offline.png`);
+      utils.removeImageFile(`${testAssetDir}/temp/offline/offline.png`);
+      utils.removeDirectory(`${testAssetDir}/temp/another-path/`);
+    });
+
+    it('should trash an asset if its file is covered by an exclusion pattern', async () => {
+      const library = await utils.createLibrary(admin.accessToken, {
+        ownerId: admin.userId,
+        importPaths: [`${testAssetDirInternal}/temp`],
       });
 
-      it('should delete an asset if its file is covered by an exclusion pattern', async () => {
-        const library = await utils.createLibrary(admin.accessToken, {
-          ownerId: admin.userId,
-          importPaths: [`${testAssetDirInternal}/temp`],
-        });
+      await scan(admin.accessToken, library.id);
+      await utils.waitForQueueFinish(admin.accessToken, 'library');
 
-        await scan(admin.accessToken, library.id);
-        await utils.waitForQueueFinish(admin.accessToken, 'library');
+      await request(app)
+        .put(`/libraries/${library.id}`)
+        .set('Authorization', `Bearer ${admin.accessToken}`)
+        .send({ exclusionPatterns: ['**/directoryB/**'] });
 
-        await request(app)
-          .put(`/libraries/${library.id}`)
-          .set('Authorization', `Bearer ${admin.accessToken}`)
-          .send({ exclusionPatterns: ['**/directoryB/**'] });
+      await scan(admin.accessToken, library.id);
+      await utils.waitForQueueFinish(admin.accessToken, 'library');
 
-        await scan(admin.accessToken, library.id);
-        await utils.waitForQueueFinish(admin.accessToken, 'library');
+      const { assets } = await utils.metadataSearch(admin.accessToken, { libraryId: library.id });
 
-        const { assets } = await utils.metadataSearch(admin.accessToken, { libraryId: library.id });
+      expect(assets.items).toEqual([
+        expect.objectContaining({
+          originalFileName: 'assetA.png',
+        }),
+      ]);
+    });
 
-        expect(assets.items).toEqual([
-          expect.objectContaining({
-            originalFileName: 'assetA.png',
-          }),
-        ]);
+    it('should not trash an online asset', async () => {
+      const library = await utils.createLibrary(admin.accessToken, {
+        ownerId: admin.userId,
+        importPaths: [`${testAssetDirInternal}/temp`],
       });
 
-      it('should delete a trashed asset if file is missing', async () => {
-        const library = await utils.createLibrary(admin.accessToken, {
-          ownerId: admin.userId,
-          importPaths: [`${testAssetDirInternal}/temp/offline`],
-        });
+      await scan(admin.accessToken, library.id);
+      await utils.waitForQueueFinish(admin.accessToken, 'library');
 
-        utils.createImageFile(`${testAssetDir}/temp/offline/offline.png`);
+      const { assets: assetsBefore } = await utils.metadataSearch(admin.accessToken, { libraryId: library.id });
+      expect(assetsBefore.count).toBeGreaterThan(1);
 
-        await scan(admin.accessToken, library.id);
-        await utils.waitForQueueFinish(admin.accessToken, 'library');
+      const { status } = await request(app)
+        .post(`/libraries/${library.id}/scan`)
+        .set('Authorization', `Bearer ${admin.accessToken}`)
+        .send();
+      expect(status).toBe(204);
 
-        const { assets: initialAssets } = await utils.metadataSearch(admin.accessToken, {
-          libraryId: library.id,
-        });
+      await utils.waitForQueueFinish(admin.accessToken, 'library');
 
-        expect(initialAssets.count).toBe(1);
+      const { assets } = await utils.metadataSearch(admin.accessToken, { libraryId: library.id });
 
-        const { status: deleteStatus } = await request(app)
-          .delete('/assets')
-          .send({ ids: [initialAssets.items[0].id] })
-          .set('Authorization', `Bearer ${admin.accessToken}`);
-        expect(deleteStatus).toBe(204);
-
-        utils.removeImageFile(`${testAssetDir}/temp/offline/offline.png`);
-
-        await scan(admin.accessToken, library.id);
-        await utils.waitForQueueFinish(admin.accessToken, 'library');
-
-        const { assets: assetsAfterDeletion } = await utils.metadataSearch(admin.accessToken, {
-          libraryId: library.id,
-        });
-        expect(assetsAfterDeletion.count).toBe(0);
-      });
-
-      it('should not delete an online asset', async () => {
-        const library = await utils.createLibrary(admin.accessToken, {
-          ownerId: admin.userId,
-          importPaths: [`${testAssetDirInternal}/temp`],
-        });
-
-        await scan(admin.accessToken, library.id);
-        await utils.waitForQueueFinish(admin.accessToken, 'library');
-
-        const { assets: assetsBefore } = await utils.metadataSearch(admin.accessToken, { libraryId: library.id });
-        expect(assetsBefore.count).toBeGreaterThan(1);
-
-        const { status } = await request(app)
-          .post(`/libraries/${library.id}/scan`)
-          .set('Authorization', `Bearer ${admin.accessToken}`)
-          .send({ scanLibraryDto: { removeDeleted: true } });
-        expect(status).toBe(204);
-
-        await utils.waitForQueueFinish(admin.accessToken, 'library');
-
-        const { assets } = await utils.metadataSearch(admin.accessToken, { libraryId: library.id });
-
-        expect(assets).toEqual(assetsBefore);
-      });
+      expect(assets).toEqual(assetsBefore);
     });
   });
 
@@ -738,7 +637,7 @@ describe('/libraries', () => {
       });
 
       await scan(admin.accessToken, library.id);
-      await utils.waitForWebsocketEvent({ event: 'assetUpload', total: 2 });
+      await utils.waitForQueueFinish(admin.accessToken, 'library');
 
       const { status, body } = await request(app)
         .delete(`/libraries/${library.id}`)
