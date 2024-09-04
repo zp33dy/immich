@@ -1,10 +1,4 @@
-import {
-  LibraryResponseDto,
-  LoginResponseDto,
-  ScanLibraryDto,
-  getAllLibraries,
-  scan as scanLibrary,
-} from '@immich/sdk';
+import { LibraryResponseDto, LoginResponseDto, getAllLibraries, scan as scanLibrary } from '@immich/sdk';
 import { cpSync, existsSync } from 'node:fs';
 import { Socket } from 'socket.io-client';
 import { userDto, uuidDto } from 'src/fixtures';
@@ -14,8 +8,7 @@ import request from 'supertest';
 import { utimes } from 'utimes';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 
-const scan = async (accessToken: string, id: string, dto: ScanLibraryDto = {}) =>
-  scanLibrary({ id, scanLibraryDto: dto }, { headers: asBearerAuth(accessToken) });
+const scan = async (accessToken: string, id: string) => scanLibrary({ id }, { headers: asBearerAuth(accessToken) });
 
 describe('/libraries', () => {
   let admin: LoginResponseDto;
@@ -589,7 +582,7 @@ describe('/libraries', () => {
           .set('Authorization', `Bearer ${admin.accessToken}`)
           .send({ exclusionPatterns: ['**/directoryB/**'] });
 
-        await scan(admin.accessToken, library.id, { removeDeleted: true });
+        await scan(admin.accessToken, library.id);
         await utils.waitForQueueFinish(admin.accessToken, 'library');
 
         const { assets } = await utils.metadataSearch(admin.accessToken, { libraryId: library.id });
@@ -626,7 +619,7 @@ describe('/libraries', () => {
 
         utils.removeImageFile(`${testAssetDir}/temp/offline/offline.png`);
 
-        await scan(admin.accessToken, library.id, { removeDeleted: true });
+        await scan(admin.accessToken, library.id);
         await utils.waitForQueueFinish(admin.accessToken, 'library');
 
         const { assets: assetsAfterDeletion } = await utils.metadataSearch(admin.accessToken, {
