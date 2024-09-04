@@ -189,7 +189,7 @@ describe(LibraryService.name, () => {
 
       expect(jobMock.queueAll).toHaveBeenCalledWith([
         {
-          name: JobName.LIBRARY_SCAN_ASSET,
+          name: JobName.LIBRARY_REFRESH_ASSET,
           data: {
             id: libraryStub.externalLibrary1.id,
             ownerId: libraryStub.externalLibrary1.owner.id,
@@ -935,7 +935,7 @@ describe(LibraryService.name, () => {
 
         expect(jobMock.queueAll).toHaveBeenCalledWith([
           {
-            name: JobName.LIBRARY_SCAN_ASSET,
+            name: JobName.LIBRARY_REFRESH_ASSET,
             data: {
               id: libraryStub.externalLibraryWithImportPaths1.id,
               assetPath: '/foo/photo.jpg',
@@ -956,7 +956,7 @@ describe(LibraryService.name, () => {
 
         expect(jobMock.queueAll).toHaveBeenCalledWith([
           {
-            name: JobName.LIBRARY_SCAN_ASSET,
+            name: JobName.LIBRARY_REFRESH_ASSET,
             data: {
               id: libraryStub.externalLibraryWithImportPaths1.id,
               assetPath: '/foo/photo.jpg',
@@ -1076,7 +1076,7 @@ describe(LibraryService.name, () => {
         ],
         [
           {
-            name: JobName.LIBRARY_QUEUE_REMOVE_DELETED,
+            name: JobName.LIBRARY_QUEUE_OFFLINE_CHECK,
             data: {
               id: libraryStub.externalLibrary1.id,
             },

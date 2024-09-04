@@ -77,8 +77,8 @@ export enum JobName {
 
   // library management
   LIBRARY_QUEUE_SCAN = 'library-scan-new',
-  LIBRARY_QUEUE_REMOVE_DELETED = 'library-queue-remove-deleted',
-  LIBRARY_SCAN_ASSET = 'library-refresh-asset',
+  LIBRARY_QUEUE_OFFLINE_CHECK = 'library-queue-remove-deleted',
+  LIBRARY_REFRESH_ASSET = 'library-refresh-asset',
   LIBRARY_OFFLINE_CHECK = 'library-remove-deleted',
   LIBRARY_DELETE = 'library-delete',
   LIBRARY_QUEUE_SCAN_ALL = 'library-queue-all-refresh',
@@ -272,9 +272,9 @@ export type JobItem =
   | { name: JobName.ASSET_DELETION_CHECK; data?: IBaseJob }
 
   // Library Management
-  | { name: JobName.LIBRARY_SCAN_ASSET; data: ILibraryFileJob }
+  | { name: JobName.LIBRARY_REFRESH_ASSET; data: ILibraryFileJob }
   | { name: JobName.LIBRARY_QUEUE_SCAN; data: IEntityJob }
-  | { name: JobName.LIBRARY_QUEUE_REMOVE_DELETED; data: IEntityJob }
+  | { name: JobName.LIBRARY_QUEUE_OFFLINE_CHECK; data: IEntityJob }
   | { name: JobName.LIBRARY_OFFLINE_CHECK; data: IEntityJob }
   | { name: JobName.LIBRARY_DELETE; data: IEntityJob }
   | { name: JobName.LIBRARY_QUEUE_SCAN_ALL; data?: IBaseJob }

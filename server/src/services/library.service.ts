@@ -246,7 +246,7 @@ export class LibraryService {
   private async scanAssets(libraryId: string, assetPaths: string[], ownerId: string) {
     await this.jobRepository.queueAll(
       assetPaths.map((assetPath) => ({
-        name: JobName.LIBRARY_SCAN_ASSET,
+        name: JobName.LIBRARY_REFRESH_ASSET,
         data: {
           id: libraryId,
           assetPath,
@@ -478,7 +478,7 @@ export class LibraryService {
         id,
       },
     });
-    await this.jobRepository.queue({ name: JobName.LIBRARY_QUEUE_REMOVE_DELETED, data: { id } });
+    await this.jobRepository.queue({ name: JobName.LIBRARY_QUEUE_OFFLINE_CHECK, data: { id } });
   }
 
   async queueOfflineCheck(id: string) {
@@ -502,7 +502,7 @@ export class LibraryService {
     );
     await this.jobRepository.queueAll(
       libraries.map((library) => ({
-        name: JobName.LIBRARY_QUEUE_REMOVE_DELETED,
+        name: JobName.LIBRARY_QUEUE_OFFLINE_CHECK,
         data: {
           id: library.id,
         },

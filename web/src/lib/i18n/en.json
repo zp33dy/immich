@@ -210,6 +210,7 @@
     "require_password_change_on_login": "Require user to change password on first login",
     "reset_settings_to_default": "Reset settings to default",
     "reset_settings_to_recent_saved": "Reset settings to the recent saved settings",
+    "scanning_library": "Scanning library",
     "search_jobs": "Search jobs...",
     "send_welcome_email": "Send welcome email",
     "server_external_domain_settings": "External domain",

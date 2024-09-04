@@ -136,7 +136,7 @@
     try {
       await scan({ id: libraryId });
       notificationController.show({
-        message: $t('admin.scanning_library_for_new_files'),
+        message: $t('admin.scanning_library'),
         type: NotificationType.Info,
       });
     } catch (error) {
