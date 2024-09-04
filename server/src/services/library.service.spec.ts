@@ -81,16 +81,6 @@ describe(LibraryService.name, () => {
   describe('onBootstrapEvent', () => {
     const configSubject = new Subject();
 
-    const configCore = {
-      getConfig: vitest.fn().mockResolvedValue({
-        library: {
-          watch: { enabled: true },
-          scan: { cronExpression: '* * * * *', enabled: true },
-        },
-      }),
-      config$: configSubject.asObservable(),
-    };
-
     it('should init cron job and subscribe to config changes', async () => {
       systemMock.get.mockResolvedValue(systemConfigStub.libraryScan);
 
@@ -420,6 +410,7 @@ describe(LibraryService.name, () => {
             name: JobName.METADATA_EXTRACTION,
             data: {
               id: assetStub.image.id,
+              source: 'upload',
             },
           },
         ],
@@ -465,6 +456,7 @@ describe(LibraryService.name, () => {
             name: JobName.METADATA_EXTRACTION,
             data: {
               id: assetStub.image.id,
+              source: 'upload',
             },
           },
         ],
@@ -509,6 +501,7 @@ describe(LibraryService.name, () => {
             name: JobName.METADATA_EXTRACTION,
             data: {
               id: assetStub.image.id,
+              source: 'upload',
             },
           },
         ],
@@ -576,6 +569,7 @@ describe(LibraryService.name, () => {
         name: JobName.METADATA_EXTRACTION,
         data: {
           id: assetStub.image.id,
+          source: 'upload',
         },
       });
 
