@@ -186,15 +186,11 @@ describe(LibraryService.name, () => {
     });
 
     it("should fail when library can't be found", async () => {
-      const mockLibraryJob: ILibraryRefreshJob = {
-        id: libraryStub.externalLibrary1.id,
-        refreshModifiedFiles: false,
-        refreshAllFiles: false,
-      };
-
       libraryMock.get.mockResolvedValue(null);
 
-      await expect(sut.handleQueueAssetRefresh(mockLibraryJob)).resolves.toBe(JobStatus.SKIPPED);
+      await expect(sut.handleQueueAssetRefresh({ id: libraryStub.externalLibrary1.id })).resolves.toBe(
+        JobStatus.SKIPPED,
+      );
     });
 
     it('should ignore import paths that do not exist', async () => {
@@ -1112,7 +1108,7 @@ describe(LibraryService.name, () => {
     it('should queue a library scan', async () => {
       libraryMock.get.mockResolvedValue(libraryStub.externalLibrary1);
 
-      await sut.queueScan(libraryStub.externalLibrary1.id, {});
+      await sut.queueScan(libraryStub.externalLibrary1.id);
 
       expect(jobMock.queue.mock.calls).toEqual([
         [

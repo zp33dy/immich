@@ -4,7 +4,6 @@ import {
   CreateLibraryDto,
   LibraryResponseDto,
   LibraryStatsResponseDto,
-  ScanLibraryDto,
   UpdateLibraryDto,
   ValidateLibraryDto,
   ValidateLibraryResponseDto,
@@ -67,7 +66,7 @@ export class LibraryController {
   @Post(':id/scan')
   @HttpCode(HttpStatus.NO_CONTENT)
   @Authenticated({ admin: true })
-  scan(@Param() { id }: UUIDParamDto, @Body() dto: ScanLibraryDto) {
-    return this.service.queueScan(id, dto);
+  scan(@Param() { id }: UUIDParamDto) {
+    return this.service.queueScan(id);
   }
 }

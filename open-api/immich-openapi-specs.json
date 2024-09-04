@@ -2861,16 +2861,6 @@
             }
           }
         ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ScanLibraryDto"
-              }
-            }
-          },
-          "required": true
-        },
         "responses": {
           "204": {
             "description": ""
@@ -10465,14 +10455,6 @@
           "lastImportFileName",
           "lastUpdate"
         ],
-        "type": "object"
-      },
-      "ScanLibraryDto": {
-        "properties": {
-          "removeDeleted": {
-            "type": "boolean"
-          }
-        },
         "type": "object"
       },
       "SearchAlbumResponseDto": {

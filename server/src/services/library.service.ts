@@ -11,21 +11,18 @@ import {
   CreateLibraryDto,
   LibraryResponseDto,
   LibraryStatsResponseDto,
-  ScanLibraryDto,
   UpdateLibraryDto,
   ValidateLibraryDto,
   ValidateLibraryImportPathResponseDto,
   ValidateLibraryResponseDto,
   mapLibrary,
 } from 'src/dtos/library.dto';
-import { AssetEntity } from 'src/entities/asset.entity';
 import { AssetType } from 'src/enum';
 import { IAssetRepository } from 'src/interfaces/asset.interface';
 import { ICryptoRepository } from 'src/interfaces/crypto.interface';
 import { DatabaseLock, IDatabaseRepository } from 'src/interfaces/database.interface';
 import { ArgOf } from 'src/interfaces/event.interface';
 import {
-  IBaseJob,
   IEntityJob,
   IJobRepository,
   ILibraryFileJob,
@@ -462,29 +459,16 @@ export class LibraryService {
     return JobStatus.SUCCESS;
   }
 
-  async queueScan(id: string, dto: ScanLibraryDto) {
+  async queueScan(id: string) {
     const library = await this.findOrFail(id);
-    if (dto.removeDeleted) {
-      // This is a safety check to ensure that the import paths are still valid
-      // For instance, if a network drive is offline we shouldn't delete everything
-      for (const importPath of library.importPaths) {
-        const validation = await this.validateImportPath(importPath);
-        if (!validation.isValid) {
-          throw new BadRequestException(
-            `Will not remove deleted assets from library ${library.id} because import path is invalid ${importPath}. Reason: ${validation.message}`,
-          );
-        }
-      }
 
-      await this.jobRepository.queue({ name: JobName.LIBRARY_QUEUE_REMOVE_DELETED, data: { id } });
-    } else {
-      await this.jobRepository.queue({
-        name: JobName.LIBRARY_QUEUE_SCAN,
-        data: {
-          id,
-        },
-      });
-    }
+    await this.jobRepository.queue({
+      name: JobName.LIBRARY_QUEUE_SCAN,
+      data: {
+        id,
+      },
+    });
+    await this.jobRepository.queue({ name: JobName.LIBRARY_QUEUE_REMOVE_DELETED, data: { id } });
   }
 
   async queueRemoveOffline(id: string) {

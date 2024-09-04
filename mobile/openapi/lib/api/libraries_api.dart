@@ -247,21 +247,19 @@ class LibrariesApi {
   /// Parameters:
   ///
   /// * [String] id (required):
-  ///
-  /// * [ScanLibraryDto] scanLibraryDto (required):
-  Future<Response> scanWithHttpInfo(String id, ScanLibraryDto scanLibraryDto,) async {
+  Future<Response> scanWithHttpInfo(String id,) async {
     // ignore: prefer_const_declarations
     final path = r'/libraries/{id}/scan'
       .replaceAll('{id}', id);
 
     // ignore: prefer_final_locals
-    Object? postBody = scanLibraryDto;
+    Object? postBody;
 
     final queryParams = <QueryParam>[];
     final headerParams = <String, String>{};
     final formParams = <String, String>{};
 
-    const contentTypes = <String>['application/json'];
+    const contentTypes = <String>[];
 
 
     return apiClient.invokeAPI(
@@ -278,10 +276,8 @@ class LibrariesApi {
   /// Parameters:
   ///
   /// * [String] id (required):
-  ///
-  /// * [ScanLibraryDto] scanLibraryDto (required):
-  Future<void> scan(String id, ScanLibraryDto scanLibraryDto,) async {
-    final response = await scanWithHttpInfo(id, scanLibraryDto,);
+  Future<void> scan(String id,) async {
+    final response = await scanWithHttpInfo(id,);
     if (response.statusCode >= HttpStatus.badRequest) {
       throw ApiException(response.statusCode, await _decodeBodyBytes(response));
     }

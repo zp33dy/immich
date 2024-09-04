@@ -89,11 +89,6 @@ export class LibrarySearchDto {
   userId?: string;
 }
 
-export class ScanLibraryDto {
-  @ValidateBoolean({ optional: true })
-  removeDeleted?: boolean;
-}
-
 export class LibraryResponseDto {
   id!: string;
   ownerId!: string;
