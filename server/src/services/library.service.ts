@@ -136,7 +136,7 @@ export class LibraryService {
           const handler = async () => {
             this.logger.debug(`File add event received for ${path} in library ${library.id}}`);
             if (matcher(path)) {
-              await this.scanAssets(library.id, [path], library.ownerId, false);
+              await this.scanAssets(library.id, [path], library.ownerId);
             }
           };
           return handlePromiseError(handler(), this.logger);
@@ -146,7 +146,7 @@ export class LibraryService {
             this.logger.debug(`Detected file change for ${path} in library ${library.id}`);
             if (matcher(path)) {
               // Note: if the changed file was not previously imported, it will be imported now.
-              await this.scanAssets(library.id, [path], library.ownerId, false);
+              await this.scanAssets(library.id, [path], library.ownerId);
             }
           };
           return handlePromiseError(handler(), this.logger);
@@ -372,11 +372,13 @@ export class LibraryService {
 
       if (asset.trashReason == AssetTrashReason.USER) {
         // Asset is trashed by user, don't re-import. This is to prevent re-importing assets that are manually trashed by the user
-        this.logger.debug(`Asset is previously trashed by user, don't re-import: ${assetPath}`);
+        this.logger.debug(`Asset is previously trashed by user, won't refresh: ${assetPath}`);
         return JobStatus.SKIPPED;
       } else if (asset.trashReason == AssetTrashReason.OFFLINE) {
         this.logger.debug(`Asset is previously trashed as offline, restoring from trash: ${assetPath}`);
         await this.assetRepository.restoreAll([asset.id]);
+        return JobStatus.SUCCESS;
+
         // TODO: can we send an event just like the asset restore in the trash service?
       } else {
         if (mtime.toISOString() === asset.fileModifiedAt.toISOString()) {
@@ -472,9 +474,9 @@ export class LibraryService {
     await this.jobRepository.queue({ name: JobName.LIBRARY_QUEUE_REMOVE_DELETED, data: { id } });
   }
 
-  async queueRemoveOffline(id: string) {
+  async queueOfflineCheck(id: string) {
     this.logger.verbose(`Queueing offline file removal from library ${id}`);
-    await this.jobRepository.queue({ name: JobName.LIBRARY_REMOVE_DELETED, data: { id } });
+    await this.jobRepository.queue({ name: JobName.LIBRARY_OFFLINE_CHECK, data: { id } });
   }
 
   async handleQueueAllScan(): Promise<JobStatus> {
@@ -502,7 +504,7 @@ export class LibraryService {
     return JobStatus.SUCCESS;
   }
 
-  async handleOfflineAsset(job: ILibraryOfflineJob): Promise<JobStatus> {
+  async handleAssetOfflineCheck(job: ILibraryOfflineJob): Promise<JobStatus> {
     const asset = await this.assetRepository.getById(job.id);
 
     if (!asset || asset.trashReason) {
@@ -594,7 +596,7 @@ export class LibraryService {
     return JobStatus.SUCCESS;
   }
 
-  async handleQueueRemoveDeleted(job: IEntityJob): Promise<JobStatus> {
+  async handleQueueAssetOfflineCheck(job: IEntityJob): Promise<JobStatus> {
     const library = await this.repository.get(job.id);
     if (!library) {
       return JobStatus.SKIPPED;
@@ -612,7 +614,7 @@ export class LibraryService {
       this.logger.debug(`Discovered ${assetCount} asset(s) in library ${library.id}...`);
       await this.jobRepository.queueAll(
         assets.map((asset) => ({
-          name: JobName.LIBRARY_REMOVE_DELETED,
+          name: JobName.LIBRARY_OFFLINE_CHECK,
           data: { id: asset.id, importPaths: library.importPaths, exclusionPatterns: library.exclusionPatterns },
         })),
       );
