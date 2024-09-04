@@ -79,8 +79,6 @@ describe(LibraryService.name, () => {
   });
 
   describe('onBootstrapEvent', () => {
-    const configSubject = new Subject();
-
     it('should init cron job and subscribe to config changes', async () => {
       systemMock.get.mockResolvedValue(systemConfigStub.libraryScan);
 
