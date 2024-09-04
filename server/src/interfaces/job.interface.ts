@@ -142,11 +142,6 @@ export interface ILibraryOfflineJob extends IEntityJob {
   exclusionPatterns: string[];
 }
 
-export interface ILibraryRefreshJob extends IEntityJob {
-  refreshModifiedFiles: boolean;
-  refreshAllFiles: boolean;
-}
-
 export interface IBulkEntityJob extends IBaseJob {
   ids: string[];
 }
@@ -278,11 +273,11 @@ export type JobItem =
 
   // Library Management
   | { name: JobName.LIBRARY_SCAN_ASSET; data: ILibraryFileJob }
-  | { name: JobName.LIBRARY_QUEUE_SCAN; data: ILibraryRefreshJob }
+  | { name: JobName.LIBRARY_QUEUE_SCAN; data: IEntityJob }
   | { name: JobName.LIBRARY_QUEUE_REMOVE_DELETED; data: IEntityJob }
   | { name: JobName.LIBRARY_REMOVE_DELETED; data: IEntityJob }
   | { name: JobName.LIBRARY_DELETE; data: IEntityJob }
-  | { name: JobName.LIBRARY_QUEUE_SCAN_ALL; data: IBaseJob }
+  | { name: JobName.LIBRARY_QUEUE_SCAN_ALL; data?: {} }
   | { name: JobName.LIBRARY_QUEUE_CLEANUP; data: IBaseJob }
 
   // Notification

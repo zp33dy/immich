@@ -14,6 +14,7 @@ import {
   AssetJobName,
   AssetJobsDto,
   AssetStatsDto,
+  AssetTrashReason,
   UpdateAssetDto,
   mapStats,
 } from 'src/dtos/asset.dto';

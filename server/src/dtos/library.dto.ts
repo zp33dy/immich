@@ -91,12 +91,6 @@ export class LibrarySearchDto {
 
 export class ScanLibraryDto {
   @ValidateBoolean({ optional: true })
-  refreshModifiedFiles?: boolean;
-
-  @ValidateBoolean({ optional: true })
-  refreshAllFiles?: boolean;
-
-  @ValidateBoolean({ optional: true })
   removeDeleted?: boolean;
 }
 

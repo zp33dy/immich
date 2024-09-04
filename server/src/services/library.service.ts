@@ -6,6 +6,7 @@ import picomatch from 'picomatch';
 import { StorageCore } from 'src/cores/storage.core';
 import { SystemConfigCore } from 'src/cores/system-config.core';
 import { OnEmit } from 'src/decorators';
+import { AssetTrashReason } from 'src/dtos/asset.dto';
 import {
   CreateLibraryDto,
   LibraryResponseDto,
@@ -17,6 +18,7 @@ import {
   ValidateLibraryResponseDto,
   mapLibrary,
 } from 'src/dtos/library.dto';
+import { AssetEntity } from 'src/entities/asset.entity';
 import { AssetType } from 'src/enum';
 import { IAssetRepository } from 'src/interfaces/asset.interface';
 import { ICryptoRepository } from 'src/interfaces/crypto.interface';
@@ -28,7 +30,6 @@ import {
   IJobRepository,
   ILibraryFileJob,
   ILibraryOfflineJob,
-  ILibraryRefreshJob,
   JOBS_LIBRARY_PAGINATION_SIZE,
   JobName,
   JobStatus,
@@ -78,11 +79,7 @@ export class LibraryService {
     this.jobRepository.addCronJob(
       'libraryScan',
       scan.cronExpression,
-      () =>
-        handlePromiseError(
-          this.jobRepository.queue({ name: JobName.LIBRARY_QUEUE_SCAN_ALL, data: { force: false } }),
-          this.logger,
-        ),
+      () => handlePromiseError(this.jobRepository.queue({ name: JobName.LIBRARY_QUEUE_SCAN_ALL }), this.logger),
       scan.enabled,
     );
 
@@ -251,7 +248,6 @@ export class LibraryService {
           id: libraryId,
           assetPath,
           ownerId,
-          force,
         },
       })),
     );
@@ -362,116 +358,105 @@ export class LibraryService {
   async handleAssetRefresh(job: ILibraryFileJob): Promise<JobStatus> {
     const assetPath = path.normalize(job.assetPath);
 
-    const existingAssetEntity = await this.assetRepository.getByLibraryIdAndOriginalPath(job.id, assetPath);
+    let asset = await this.assetRepository.getByLibraryIdAndOriginalPath(job.id, assetPath);
 
-    let stats: Stats;
-    try {
-      stats = await this.storageRepository.stat(assetPath);
-    } catch (error: Error | any) {
-      // Can't access file
-
-      throw new BadRequestException('Cannot access file', { cause: error });
-    }
-
-    let doImport = false;
-    let doRefresh = false;
-
-    if (job.force) {
-      doRefresh = true;
-    }
+    const getMtime = async (path: string) => {
+      try {
+        const stat = await this.storageRepository.stat(path);
+        return stat.mtime;
+      } catch (error: Error | any) {
+        throw new BadRequestException(`Cannot access file ${path}`, { cause: error });
+      }
+    };
 
     const originalFileName = parse(assetPath).base;
 
-    if (!existingAssetEntity) {
+    if (!asset) {
       // This asset is new to us, read it from disk
-      this.logger.debug(`Importing new asset: ${assetPath}`);
-      doImport = true;
-    } else if (stats.mtime.toISOString() !== existingAssetEntity.fileModifiedAt.toISOString()) {
-      // File modification time has changed since last time we checked, re-read from disk
-      this.logger.debug(
-        `File modification time has changed, re-importing asset: ${assetPath}. Old mtime: ${existingAssetEntity.fileModifiedAt}. New mtime: ${stats.mtime}`,
-      );
-      doRefresh = true;
-    } else if (existingAssetEntity.originalFileName !== originalFileName) {
-      // TODO: We can likely remove this check in the second half of 2024 when all assets have likely been re-imported by all users
-      this.logger.debug(
-        `Asset is missing file extension, re-importing: ${assetPath}. Current incorrect filename: ${existingAssetEntity.originalFileName}.`,
-      );
-      doRefresh = true;
-    } else if (!job.force && stats) {
-      // Asset exists on disk and in db and mtime has not changed. Also, we are not forcing refresn. Therefore, do nothing
-      this.logger.debug(`Asset already exists in database and on disk, will not import: ${assetPath}`);
-    }
+      this.logger.log(`Importing new library asset: ${assetPath}`);
 
-    if (!doImport && !doRefresh) {
-      // If we don't import, exit here
-      return JobStatus.SKIPPED;
-    }
-
-    let assetType: AssetType;
-
-    if (mimeTypes.isImage(assetPath)) {
-      assetType = AssetType.IMAGE;
-    } else if (mimeTypes.isVideo(assetPath)) {
-      assetType = AssetType.VIDEO;
-    } else {
-      throw new BadRequestException(`Unsupported file type ${assetPath}`);
-    }
-
-    // TODO: doesn't xmp replace the file extension? Will need investigation
-    let sidecarPath: string | null = null;
-    if (await this.storageRepository.checkFileExists(`${assetPath}.xmp`, R_OK)) {
-      sidecarPath = `${assetPath}.xmp`;
-    }
-
-    // TODO: device asset id is deprecated, remove it
-    const deviceAssetId = `${basename(assetPath)}`.replaceAll(/\s+/g, '');
-
-    let assetId;
-    if (doImport) {
       const library = await this.repository.get(job.id, true);
       if (library?.deletedAt) {
         this.logger.error('Cannot import asset into deleted library');
         return JobStatus.FAILED;
       }
 
+      // TODO: device asset id is deprecated, remove it
+      const deviceAssetId = `${basename(assetPath)}`.replaceAll(/\s+/g, '');
+
       const pathHash = this.cryptoRepository.hashSha1(`path:${assetPath}`);
 
+      // TODO: doesn't xmp replace the file extension? Will need investigation
+      let sidecarPath: string | null = null;
+      if (await this.storageRepository.checkFileExists(`${assetPath}.xmp`, R_OK)) {
+        sidecarPath = `${assetPath}.xmp`;
+      }
+
+      let assetType: AssetType;
+
+      if (mimeTypes.isImage(assetPath)) {
+        assetType = AssetType.IMAGE;
+      } else if (mimeTypes.isVideo(assetPath)) {
+        assetType = AssetType.VIDEO;
+      } else {
+        throw new BadRequestException(`Unsupported file type ${assetPath}`);
+      }
+
+      const mtime = await getMtime(assetPath);
+
       // TODO: In wait of refactoring the domain asset service, this function is just manually written like this
-      const addedAsset = await this.assetRepository.create({
+      asset = await this.assetRepository.create({
         ownerId: job.ownerId,
         libraryId: job.id,
         checksum: pathHash,
         originalPath: assetPath,
         deviceAssetId,
         deviceId: 'Library Import',
-        fileCreatedAt: stats.mtime,
-        fileModifiedAt: stats.mtime,
-        localDateTime: stats.mtime,
+        fileCreatedAt: mtime,
+        fileModifiedAt: mtime,
+        localDateTime: mtime,
         type: assetType,
         originalFileName,
         sidecarPath,
         isExternal: true,
       });
-      assetId = addedAsset.id;
-    } else if (doRefresh && existingAssetEntity) {
-      assetId = existingAssetEntity.id;
-      await this.assetRepository.updateAll([existingAssetEntity.id], {
-        fileCreatedAt: stats.mtime,
-        fileModifiedAt: stats.mtime,
-        originalFileName,
-      });
     } else {
-      // Not importing and not refreshing, do nothing
-      return JobStatus.SKIPPED;
+      const mtime = await getMtime(assetPath);
+
+      if (asset.trashReason == AssetTrashReason.USER) {
+        // Asset is trashed by user, don't re-import. This is to prevent re-importing assets that are manually trashed by the user
+        this.logger.debug(`Asset is previously trashed by user, don't re-import: ${assetPath}`);
+        return JobStatus.SKIPPED;
+      } else if (asset.trashReason == AssetTrashReason.OFFLINE) {
+        this.logger.debug(`Asset is previously trashed as offline, restoring from trash: ${assetPath}`);
+      } else {
+        if (mtime.toISOString() !== asset.fileModifiedAt.toISOString()) {
+          // File modification time has changed since last time we checked, re-read from disk
+          this.logger.debug(
+            `File modification time has changed, re-importing asset: ${assetPath}. Old mtime: ${asset.fileModifiedAt}. New mtime: ${mtime}`,
+          );
+        } else {
+          // Asset exists on disk and in db and mtime has not changed, do nothing
+          this.logger.debug(`Asset already exists in database and on disk, will not import: ${assetPath}`);
+          return JobStatus.SKIPPED;
+        }
+      }
+
+      await this.assetRepository.updateAll([asset.id], {
+        fileCreatedAt: mtime,
+        fileModifiedAt: mtime,
+        originalFileName,
+        deletedAt: null,
+        trashReason: null,
+      });
     }
 
     this.logger.debug(`Queueing metadata extraction for: ${assetPath}`);
 
-    await this.jobRepository.queue({ name: JobName.METADATA_EXTRACTION, data: { id: assetId, source: 'upload' } });
+    await this.jobRepository.queue({ name: JobName.METADATA_EXTRACTION, data: { id: asset.id } });
 
-    if (assetType === AssetType.VIDEO) {
-      await this.jobRepository.queue({ name: JobName.VIDEO_CONVERSION, data: { id: assetId } });
+    if (asset.type === AssetType.VIDEO) {
+      await this.jobRepository.queue({ name: JobName.VIDEO_CONVERSION, data: { id: asset.id } });
     }
 
     return JobStatus.SUCCESS;
@@ -479,12 +464,7 @@ export class LibraryService {
 
   async queueScan(id: string, dto: ScanLibraryDto) {
     const library = await this.findOrFail(id);
-
     if (dto.removeDeleted) {
-      if (dto.refreshAllFiles || dto.refreshModifiedFiles) {
-        throw new BadRequestException('Cannot refresh and remove deleted assets at the same time');
-      }
-
       // This is a safety check to ensure that the import paths are still valid
       // For instance, if a network drive is offline we shouldn't delete everything
       for (const importPath of library.importPaths) {
@@ -502,8 +482,6 @@ export class LibraryService {
         name: JobName.LIBRARY_QUEUE_SCAN,
         data: {
           id,
-          refreshModifiedFiles: dto.refreshModifiedFiles ?? false,
-          refreshAllFiles: dto.refreshAllFiles ?? false,
         },
       });
     }
@@ -514,8 +492,8 @@ export class LibraryService {
     await this.jobRepository.queue({ name: JobName.LIBRARY_REMOVE_DELETED, data: { id } });
   }
 
-  async handleQueueAllScan(job: IBaseJob): Promise<JobStatus> {
-    this.logger.debug(`Refreshing all external libraries: force=${job.force}`);
+  async handleQueueAllScan(): Promise<JobStatus> {
+    this.logger.debug(`Refreshing all external libraries`);
 
     await this.jobRepository.queue({ name: JobName.LIBRARY_QUEUE_CLEANUP, data: {} });
 
@@ -525,8 +503,6 @@ export class LibraryService {
         name: JobName.LIBRARY_QUEUE_SCAN,
         data: {
           id: library.id,
-          refreshModifiedFiles: !job.force,
-          refreshAllFiles: job.force ?? false,
         },
       })),
     );
@@ -541,31 +517,37 @@ export class LibraryService {
     return JobStatus.SUCCESS;
   }
 
-  async handleRemoveDeleted(job: ILibraryOfflineJob): Promise<JobStatus> {
+  async handleOfflineAsset(job: ILibraryOfflineJob): Promise<JobStatus> {
     const asset = await this.assetRepository.getById(job.id);
 
-    if (!asset) {
+    if (!asset || asset.trashReason) {
+      // Skip if asset is missing or already trashed
+      // We don't want to trash an asset that has already been trashed because it can otherwise re-appear on the timeline if an asset is re-imported
       return JobStatus.SKIPPED;
     }
 
+    const markOffline = async (explanation: string) => {
+      this.logger.debug(`${explanation}, removing: ${asset.originalPath}`);
+
+      await this.assetRepository.updateAll([asset.id], { trashReason: AssetTrashReason.OFFLINE });
+      await this.assetRepository.remove(asset);
+    };
+
     const isInPath = job.importPaths.find((path) => asset.originalPath.startsWith(path));
     if (!isInPath) {
-      this.logger.debug(`Asset is no longer in an import path, removing: ${asset.originalPath}`);
-      await this.assetRepository.remove(asset);
+      await markOffline('Asset is no longer in an import path');
       return JobStatus.SUCCESS;
     }
 
     const isExcluded = job.exclusionPatterns.some((pattern) => picomatch.isMatch(asset.originalPath, pattern));
     if (isExcluded) {
-      this.logger.debug(`Asset is covered by an exclusion pattern, removing: ${asset.originalPath}`);
-      await this.assetRepository.remove(asset);
+      await markOffline('Asset is covered by an exclusion pattern');
       return JobStatus.SUCCESS;
     }
 
     const fileExists = await this.storageRepository.checkFileExists(asset.originalPath, R_OK);
     if (!fileExists) {
-      this.logger.debug(`Asset is no longer on disk, removing: ${asset.originalPath}`);
-      await this.assetRepository.remove(asset);
+      await markOffline('Asset is no longer on disk');
       return JobStatus.SUCCESS;
     }
 
@@ -576,9 +558,10 @@ export class LibraryService {
     return JobStatus.SUCCESS;
   }
 
-  async handleQueueAssetRefresh(job: ILibraryRefreshJob): Promise<JobStatus> {
+  async handleQueueAssetRefresh(job: IEntityJob): Promise<JobStatus> {
     const library = await this.repository.get(job.id);
     if (!library) {
+      this.logger.debug(`Library ${job.id} not found, skipping refresh`);
       return JobStatus.SKIPPED;
     }
 
@@ -595,30 +578,30 @@ export class LibraryService {
       }
     }
 
-    if (validImportPaths.length === 0) {
+    if (!validImportPaths) {
       this.logger.warn(`No valid import paths found for library ${library.id}`);
-    }
-
-    const assetsOnDisk = this.storageRepository.walk({
-      pathsToCrawl: validImportPaths,
-      includeHidden: false,
-      exclusionPatterns: library.exclusionPatterns,
-      take: JOBS_LIBRARY_PAGINATION_SIZE,
-    });
-
-    let crawledAssets = 0;
-
-    for await (const assetBatch of assetsOnDisk) {
-      crawledAssets += assetBatch.length;
-      this.logger.debug(`Discovered ${crawledAssets} asset(s) on disk for library ${library.id}...`);
-      await this.scanAssets(job.id, assetBatch, library.ownerId, job.refreshAllFiles ?? false);
-      this.logger.verbose(`Queued scan of ${assetBatch.length} crawled asset(s) in library ${library.id}...`);
-    }
-
-    if (crawledAssets) {
-      this.logger.debug(`Finished queueing scan of ${crawledAssets} assets on disk for library ${library.id}`);
     } else {
-      this.logger.debug(`No non-excluded assets found in any import path for library ${library.id}`);
+      const assetsOnDisk = this.storageRepository.walk({
+        pathsToCrawl: validImportPaths,
+        includeHidden: false,
+        exclusionPatterns: library.exclusionPatterns,
+        take: JOBS_LIBRARY_PAGINATION_SIZE,
+      });
+
+      let crawledAssets = 0;
+
+      for await (const assetBatch of assetsOnDisk) {
+        crawledAssets += assetBatch.length;
+        this.logger.debug(`Discovered ${crawledAssets} asset(s) on disk for library ${library.id}...`);
+        await this.scanAssets(job.id, assetBatch, library.ownerId);
+        this.logger.verbose(`Queued scan of ${assetBatch.length} crawled asset(s) in library ${library.id}...`);
+      }
+
+      if (crawledAssets) {
+        this.logger.debug(`Finished queueing scan of ${crawledAssets} assets on disk for library ${library.id}`);
+      } else {
+        this.logger.debug(`No non-excluded assets found in any import path for library ${library.id}`);
+      }
     }
 
     await this.repository.update({ id: job.id, refreshedAt: new Date() });
