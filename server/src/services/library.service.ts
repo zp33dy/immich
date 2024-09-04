@@ -21,7 +21,7 @@ import { AssetType } from 'src/enum';
 import { IAssetRepository } from 'src/interfaces/asset.interface';
 import { ICryptoRepository } from 'src/interfaces/crypto.interface';
 import { DatabaseLock, IDatabaseRepository } from 'src/interfaces/database.interface';
-import { ArgOf } from 'src/interfaces/event.interface';
+import { ArgOf, ClientEvent, IEventRepository } from 'src/interfaces/event.interface';
 import {
   IEntityJob,
   IJobRepository,
@@ -426,6 +426,8 @@ export class LibraryService {
         return JobStatus.SKIPPED;
       } else if (asset.trashReason == AssetTrashReason.OFFLINE) {
         this.logger.debug(`Asset is previously trashed as offline, restoring from trash: ${assetPath}`);
+        await this.assetRepository.restoreAll([asset.id]);
+        // TODO: can we send an event just like the asset restore in the trash service?
       } else {
         if (mtime.toISOString() !== asset.fileModifiedAt.toISOString()) {
           // File modification time has changed since last time we checked, re-read from disk
@@ -514,7 +516,7 @@ export class LibraryService {
       this.logger.debug(`${explanation}, removing: ${asset.originalPath}`);
 
       await this.assetRepository.updateAll([asset.id], { trashReason: AssetTrashReason.OFFLINE });
-      await this.assetRepository.remove(asset);
+      await this.assetRepository.softDeleteAll([asset.id]);
     };
 
     const isInPath = job.importPaths.find((path) => asset.originalPath.startsWith(path));

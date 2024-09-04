@@ -121,7 +121,7 @@
   const handleScanAll = async () => {
     try {
       for (const library of libraries) {
-        await scan({ id: library.id, scanLibraryDto: {} });
+        await scan({ id: library.id });
       }
       notificationController.show({
         message: $t('admin.refreshing_all_libraries'),
@@ -134,7 +134,7 @@
 
   const handleScan = async (libraryId: string) => {
     try {
-      await scan({ id: libraryId, scanLibraryDto: {} });
+      await scan({ id: libraryId });
       notificationController.show({
         message: $t('admin.scanning_library_for_new_files'),
         type: NotificationType.Info,
@@ -296,16 +296,12 @@
                     icon={mdiDotsVertical}
                     title={$t('library_options')}
                   >
-                    <MenuOption
-                      onClick={() => onScanClicked(library)}
-                      text={$t('scan_new_library_files')}
-                      subtitle={$t('looks_for_new_files')}
-                    />
+                    <MenuOption onClick={() => onScanClicked(library)} text={$t('scan_new_library_files')} />
                     <hr />
                     <MenuOption onClick={() => onRenameClicked(index)} text={$t('rename')} />
                     <MenuOption onClick={() => onEditImportPathClicked(index)} text={$t('edit_import_paths')} />
                     <MenuOption onClick={() => onScanSettingClicked(index)} text={$t('scan_settings')} />
-
+                    <hr />
                     <MenuOption
                       onClick={() => handleDelete(library, index)}
                       activeColor="bg-red-200"
