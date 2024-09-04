@@ -1,4 +1,4 @@
-import { LibraryResponseDto, LoginResponseDto, getAllLibraries, scan as scanLibrary } from '@immich/sdk';
+import { LibraryResponseDto, LoginResponseDto, TrashReason, getAllLibraries, scan as scanLibrary } from '@immich/sdk';
 import { cpSync, existsSync } from 'node:fs';
 import { Socket } from 'socket.io-client';
 import { userDto, uuidDto } from 'src/fixtures';
@@ -285,7 +285,7 @@ describe('/libraries', () => {
       expect(body).toEqual(errorDto.unauthorized);
     });
 
-    it('should scan external library', async () => {
+    it('should import new asset when scanning external library', async () => {
       const library = await utils.createLibrary(admin.accessToken, {
         ownerId: admin.userId,
         importPaths: [`${testAssetDirInternal}/temp/directoryA`],
@@ -347,36 +347,7 @@ describe('/libraries', () => {
       expect(assets.items.find((asset) => asset.originalPath.includes('directoryB'))).toBeDefined();
     });
 
-    it('should scan new files', async () => {
-      const library = await utils.createLibrary(admin.accessToken, {
-        ownerId: admin.userId,
-        importPaths: [`${testAssetDirInternal}/temp`],
-      });
-
-      utils.createImageFile(`${testAssetDir}/temp/directoryC/assetC.png`);
-
-      const { status } = await request(app)
-        .post(`/libraries/${library.id}/scan`)
-        .set('Authorization', `Bearer ${admin.accessToken}`)
-        .send();
-      expect(status).toBe(204);
-
-      await utils.waitForQueueFinish(admin.accessToken, 'library');
-
-      const { assets } = await utils.metadataSearch(admin.accessToken, { libraryId: library.id });
-
-      expect(assets.items).toEqual(
-        expect.arrayContaining([
-          expect.objectContaining({
-            originalFileName: 'assetC.png',
-          }),
-        ]),
-      );
-
-      utils.removeImageFile(`${testAssetDir}/temp/directoryC/assetC.png`);
-    });
-
-    it('should reimport modified files', async () => {
+    it('should reimport a modified file', async () => {
       const library = await utils.createLibrary(admin.accessToken, {
         ownerId: admin.userId,
         importPaths: [`${testAssetDirInternal}/temp`],
@@ -459,10 +430,15 @@ describe('/libraries', () => {
       const { status } = await request(app)
         .post(`/libraries/${library.id}/scan`)
         .set('Authorization', `Bearer ${admin.accessToken}`)
-        .send({ removeDeleted: true });
+        .send();
       expect(status).toBe(204);
 
       await utils.waitForQueueFinish(admin.accessToken, 'library');
+
+      const trashedAsset = await utils.getAssetInfo(admin.accessToken, assets.items[0].id);
+      expect(trashedAsset.isTrashed).toBe(true);
+      expect(trashedAsset.originalPath).toBe(`${testAssetDirInternal}/temp/offline/offline.png`);
+      expect(trashedAsset.trashReason).toEqual(TrashReason.Offline);
 
       const { assets: newAssets } = await utils.metadataSearch(admin.accessToken, { libraryId: library.id });
       expect(newAssets.items).toEqual([]);
@@ -479,6 +455,9 @@ describe('/libraries', () => {
       await scan(admin.accessToken, library.id);
       await utils.waitForQueueFinish(admin.accessToken, 'library');
 
+      const { assets } = await utils.metadataSearch(admin.accessToken, { libraryId: library.id });
+      expect(assets.count).toBe(1);
+
       utils.createDirectory(`${testAssetDir}/temp/another-path/`);
 
       await request(app)
@@ -494,9 +473,14 @@ describe('/libraries', () => {
 
       await utils.waitForQueueFinish(admin.accessToken, 'library');
 
-      const { assets } = await utils.metadataSearch(admin.accessToken, { libraryId: library.id });
+      const trashedAsset = await utils.getAssetInfo(admin.accessToken, assets.items[0].id);
+      expect(trashedAsset.isTrashed).toBe(true);
+      expect(trashedAsset.originalPath).toBe(`${testAssetDirInternal}/temp/offline/offline.png`);
+      expect(trashedAsset.trashReason).toEqual(TrashReason.Offline);
 
-      expect(assets.items).toEqual([]);
+      const { assets: newAssets } = await utils.metadataSearch(admin.accessToken, { libraryId: library.id });
+
+      expect(newAssets.items).toEqual([]);
 
       utils.removeImageFile(`${testAssetDir}/temp/offline/offline.png`);
       utils.removeDirectory(`${testAssetDir}/temp/another-path/`);
@@ -511,6 +495,12 @@ describe('/libraries', () => {
       await scan(admin.accessToken, library.id);
       await utils.waitForQueueFinish(admin.accessToken, 'library');
 
+      const { assets } = await utils.metadataSearch(admin.accessToken, {
+        libraryId: library.id,
+        originalFileName: 'assetB.png',
+      });
+      expect(assets.count).toBe(1);
+
       await request(app)
         .put(`/libraries/${library.id}`)
         .set('Authorization', `Bearer ${admin.accessToken}`)
@@ -519,9 +509,14 @@ describe('/libraries', () => {
       await scan(admin.accessToken, library.id);
       await utils.waitForQueueFinish(admin.accessToken, 'library');
 
-      const { assets } = await utils.metadataSearch(admin.accessToken, { libraryId: library.id });
+      const trashedAsset = await utils.getAssetInfo(admin.accessToken, assets.items[0].id);
+      expect(trashedAsset.isTrashed).toBe(true);
+      expect(trashedAsset.originalPath).toBe(`${testAssetDirInternal}/temp/directoryB/assetB.png`);
+      expect(trashedAsset.trashReason).toEqual(TrashReason.Offline);
 
-      expect(assets.items).toEqual([
+      const { assets: newAssets } = await utils.metadataSearch(admin.accessToken, { libraryId: library.id });
+
+      expect(newAssets.items).toEqual([
         expect.objectContaining({
           originalFileName: 'assetA.png',
         }),

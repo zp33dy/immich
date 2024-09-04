@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { PropertyLifecycle } from 'src/decorators';
+import { AssetTrashReason } from 'src/dtos/asset.dto';
 import { AuthDto } from 'src/dtos/auth.dto';
 import { ExifResponseDto, mapExif } from 'src/dtos/exif.dto';
 import {
@@ -43,6 +44,7 @@ export class AssetResponseDto extends SanitizedAssetResponseDto {
   isFavorite!: boolean;
   isArchived!: boolean;
   isTrashed!: boolean;
+  trashReason?: string | null;
   exifInfo?: ExifResponseDto;
   smartInfo?: SmartInfoResponseDto;
   tags?: TagResponseDto[];
@@ -138,6 +140,7 @@ export function mapAsset(entity: AssetEntity, options: AssetMapOptions = {}): As
     isFavorite: options.auth?.user.id === entity.ownerId ? entity.isFavorite : false,
     isArchived: entity.isArchived,
     isTrashed: !!entity.deletedAt,
+    trashReason: entity.trashReason,
     duration: entity.duration ?? '0:00:00.00000',
     exifInfo: entity.exifInfo ? mapExif(entity.exifInfo) : undefined,
     smartInfo: entity.smartInfo ? mapSmartInfo(entity.smartInfo) : undefined,

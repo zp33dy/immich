@@ -40,6 +40,7 @@ class AssetResponseDto {
     this.stack,
     this.tags = const [],
     required this.thumbhash,
+    this.trashReason,
     required this.type,
     this.unassignedFaces = const [],
     required this.updatedAt,
@@ -132,6 +133,8 @@ class AssetResponseDto {
 
   String? thumbhash;
 
+  String? trashReason;
+
   AssetTypeEnum type;
 
   List<AssetFaceWithoutPersonResponseDto> unassignedFaces;
@@ -167,6 +170,7 @@ class AssetResponseDto {
     other.stack == stack &&
     _deepEquality.equals(other.tags, tags) &&
     other.thumbhash == thumbhash &&
+    other.trashReason == trashReason &&
     other.type == type &&
     _deepEquality.equals(other.unassignedFaces, unassignedFaces) &&
     other.updatedAt == updatedAt;
@@ -201,12 +205,13 @@ class AssetResponseDto {
     (stack == null ? 0 : stack!.hashCode) +
     (tags.hashCode) +
     (thumbhash == null ? 0 : thumbhash!.hashCode) +
+    (trashReason == null ? 0 : trashReason!.hashCode) +
     (type.hashCode) +
     (unassignedFaces.hashCode) +
     (updatedAt.hashCode);
 
   @override
-  String toString() => 'AssetResponseDto[checksum=$checksum, deviceAssetId=$deviceAssetId, deviceId=$deviceId, duplicateId=$duplicateId, duration=$duration, exifInfo=$exifInfo, fileCreatedAt=$fileCreatedAt, fileModifiedAt=$fileModifiedAt, hasMetadata=$hasMetadata, id=$id, isArchived=$isArchived, isFavorite=$isFavorite, isTrashed=$isTrashed, libraryId=$libraryId, livePhotoVideoId=$livePhotoVideoId, localDateTime=$localDateTime, originalFileName=$originalFileName, originalMimeType=$originalMimeType, originalPath=$originalPath, owner=$owner, ownerId=$ownerId, people=$people, resized=$resized, smartInfo=$smartInfo, stack=$stack, tags=$tags, thumbhash=$thumbhash, type=$type, unassignedFaces=$unassignedFaces, updatedAt=$updatedAt]';
+  String toString() => 'AssetResponseDto[checksum=$checksum, deviceAssetId=$deviceAssetId, deviceId=$deviceId, duplicateId=$duplicateId, duration=$duration, exifInfo=$exifInfo, fileCreatedAt=$fileCreatedAt, fileModifiedAt=$fileModifiedAt, hasMetadata=$hasMetadata, id=$id, isArchived=$isArchived, isFavorite=$isFavorite, isTrashed=$isTrashed, libraryId=$libraryId, livePhotoVideoId=$livePhotoVideoId, localDateTime=$localDateTime, originalFileName=$originalFileName, originalMimeType=$originalMimeType, originalPath=$originalPath, owner=$owner, ownerId=$ownerId, people=$people, resized=$resized, smartInfo=$smartInfo, stack=$stack, tags=$tags, thumbhash=$thumbhash, trashReason=$trashReason, type=$type, unassignedFaces=$unassignedFaces, updatedAt=$updatedAt]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
@@ -277,6 +282,11 @@ class AssetResponseDto {
     } else {
     //  json[r'thumbhash'] = null;
     }
+    if (this.trashReason != null) {
+      json[r'trashReason'] = this.trashReason;
+    } else {
+    //  json[r'trashReason'] = null;
+    }
       json[r'type'] = this.type;
       json[r'unassignedFaces'] = this.unassignedFaces;
       json[r'updatedAt'] = this.updatedAt.toUtc().toIso8601String();
@@ -318,6 +328,7 @@ class AssetResponseDto {
         stack: AssetStackResponseDto.fromJson(json[r'stack']),
         tags: TagResponseDto.listFromJson(json[r'tags']),
         thumbhash: mapValueOfType<String>(json, r'thumbhash'),
+        trashReason: mapValueOfType<String>(json, r'trashReason'),
         type: AssetTypeEnum.fromJson(json[r'type'])!,
         unassignedFaces: AssetFaceWithoutPersonResponseDto.listFromJson(json[r'unassignedFaces']),
         updatedAt: mapDateTime(json, r'updatedAt', r'')!,
