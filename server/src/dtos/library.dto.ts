@@ -1,7 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { ArrayMaxSize, ArrayUnique, IsNotEmpty, IsString } from 'class-validator';
 import { LibraryEntity } from 'src/entities/library.entity';
-import { Optional, ValidateBoolean, ValidateUUID } from 'src/validation';
+import { Optional, ValidateUUID } from 'src/validation';
 
 export class CreateLibraryDto {
   @ValidateUUID()

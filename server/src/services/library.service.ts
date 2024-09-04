@@ -1,6 +1,5 @@
 import { BadRequestException, Inject, Injectable } from '@nestjs/common';
 import { R_OK } from 'node:constants';
-import { Stats } from 'node:fs';
 import path, { basename, parse } from 'node:path';
 import picomatch from 'picomatch';
 import { StorageCore } from 'src/cores/storage.core';
@@ -21,7 +20,7 @@ import { AssetType } from 'src/enum';
 import { IAssetRepository } from 'src/interfaces/asset.interface';
 import { ICryptoRepository } from 'src/interfaces/crypto.interface';
 import { DatabaseLock, IDatabaseRepository } from 'src/interfaces/database.interface';
-import { ArgOf, ClientEvent, IEventRepository } from 'src/interfaces/event.interface';
+import { ArgOf } from 'src/interfaces/event.interface';
 import {
   IEntityJob,
   IJobRepository,
@@ -237,7 +236,7 @@ export class LibraryService {
     return mapLibrary(library);
   }
 
-  private async scanAssets(libraryId: string, assetPaths: string[], ownerId: string, force = false) {
+  private async scanAssets(libraryId: string, assetPaths: string[], ownerId: string) {
     await this.jobRepository.queueAll(
       assetPaths.map((assetPath) => ({
         name: JobName.LIBRARY_SCAN_ASSET,
@@ -352,23 +351,54 @@ export class LibraryService {
     return JobStatus.SUCCESS;
   }
 
+  private async getMtime(path: string): Promise<Date> {
+    try {
+      const stat = await this.storageRepository.stat(path);
+      return stat.mtime;
+    } catch (error: Error | any) {
+      throw new BadRequestException(`Cannot access file ${path}`, { cause: error });
+    }
+  }
+
   async handleAssetRefresh(job: ILibraryFileJob): Promise<JobStatus> {
     const assetPath = path.normalize(job.assetPath);
 
     let asset = await this.assetRepository.getByLibraryIdAndOriginalPath(job.id, assetPath);
 
-    const getMtime = async (path: string) => {
-      try {
-        const stat = await this.storageRepository.stat(path);
-        return stat.mtime;
-      } catch (error: Error | any) {
-        throw new BadRequestException(`Cannot access file ${path}`, { cause: error });
-      }
-    };
-
     const originalFileName = parse(assetPath).base;
 
-    if (!asset) {
+    if (asset) {
+      const mtime = await this.getMtime(assetPath);
+
+      if (asset.trashReason == AssetTrashReason.USER) {
+        // Asset is trashed by user, don't re-import. This is to prevent re-importing assets that are manually trashed by the user
+        this.logger.debug(`Asset is previously trashed by user, don't re-import: ${assetPath}`);
+        return JobStatus.SKIPPED;
+      } else if (asset.trashReason == AssetTrashReason.OFFLINE) {
+        this.logger.debug(`Asset is previously trashed as offline, restoring from trash: ${assetPath}`);
+        await this.assetRepository.restoreAll([asset.id]);
+        // TODO: can we send an event just like the asset restore in the trash service?
+      } else {
+        if (mtime.toISOString() === asset.fileModifiedAt.toISOString()) {
+          // Asset exists on disk and in db and mtime has not changed, do nothing
+          this.logger.debug(`Asset already exists in database and on disk, will not import: ${assetPath}`);
+          return JobStatus.SKIPPED;
+        } else {
+          // File modification time has changed since last time we checked, re-read from disk
+          this.logger.debug(
+            `File modification time has changed, re-importing asset: ${assetPath}. Old mtime: ${asset.fileModifiedAt}. New mtime: ${mtime}`,
+          );
+        }
+      }
+
+      await this.assetRepository.updateAll([asset.id], {
+        fileCreatedAt: mtime,
+        fileModifiedAt: mtime,
+        originalFileName,
+        deletedAt: null,
+        trashReason: null,
+      });
+    } else {
       // This asset is new to us, read it from disk
       this.logger.log(`Importing new library asset: ${assetPath}`);
 
@@ -399,7 +429,7 @@ export class LibraryService {
         throw new BadRequestException(`Unsupported file type ${assetPath}`);
       }
 
-      const mtime = await getMtime(assetPath);
+      const mtime = await this.getMtime(assetPath);
 
       // TODO: In wait of refactoring the domain asset service, this function is just manually written like this
       asset = await this.assetRepository.create({
@@ -417,37 +447,6 @@ export class LibraryService {
         sidecarPath,
         isExternal: true,
       });
-    } else {
-      const mtime = await getMtime(assetPath);
-
-      if (asset.trashReason == AssetTrashReason.USER) {
-        // Asset is trashed by user, don't re-import. This is to prevent re-importing assets that are manually trashed by the user
-        this.logger.debug(`Asset is previously trashed by user, don't re-import: ${assetPath}`);
-        return JobStatus.SKIPPED;
-      } else if (asset.trashReason == AssetTrashReason.OFFLINE) {
-        this.logger.debug(`Asset is previously trashed as offline, restoring from trash: ${assetPath}`);
-        await this.assetRepository.restoreAll([asset.id]);
-        // TODO: can we send an event just like the asset restore in the trash service?
-      } else {
-        if (mtime.toISOString() !== asset.fileModifiedAt.toISOString()) {
-          // File modification time has changed since last time we checked, re-read from disk
-          this.logger.debug(
-            `File modification time has changed, re-importing asset: ${assetPath}. Old mtime: ${asset.fileModifiedAt}. New mtime: ${mtime}`,
-          );
-        } else {
-          // Asset exists on disk and in db and mtime has not changed, do nothing
-          this.logger.debug(`Asset already exists in database and on disk, will not import: ${assetPath}`);
-          return JobStatus.SKIPPED;
-        }
-      }
-
-      await this.assetRepository.updateAll([asset.id], {
-        fileCreatedAt: mtime,
-        fileModifiedAt: mtime,
-        originalFileName,
-        deletedAt: null,
-        trashReason: null,
-      });
     }
 
     this.logger.debug(`Queueing metadata extraction for: ${assetPath}`);
@@ -462,7 +461,7 @@ export class LibraryService {
   }
 
   async queueScan(id: string) {
-    const library = await this.findOrFail(id);
+    await this.findOrFail(id);
 
     await this.jobRepository.queue({
       name: JobName.LIBRARY_QUEUE_SCAN,
@@ -564,9 +563,7 @@ export class LibraryService {
       }
     }
 
-    if (!validImportPaths) {
-      this.logger.warn(`No valid import paths found for library ${library.id}`);
-    } else {
+    if (validImportPaths) {
       const assetsOnDisk = this.storageRepository.walk({
         pathsToCrawl: validImportPaths,
         includeHidden: false,
@@ -588,6 +585,8 @@ export class LibraryService {
       } else {
         this.logger.debug(`No non-excluded assets found in any import path for library ${library.id}`);
       }
+    } else {
+      this.logger.warn(`No valid import paths found for library ${library.id}`);
     }
 
     await this.repository.update({ id: job.id, refreshedAt: new Date() });

@@ -1,6 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { PropertyLifecycle } from 'src/decorators';
-import { AssetTrashReason } from 'src/dtos/asset.dto';
 import { AuthDto } from 'src/dtos/auth.dto';
 import { ExifResponseDto, mapExif } from 'src/dtos/exif.dto';
 import {
