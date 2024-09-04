@@ -1109,27 +1109,10 @@ describe(LibraryService.name, () => {
   });
 
   describe('queueScan', () => {
-    it('should queue a library scan of external library', async () => {
+    it('should queue a library scan', async () => {
       libraryMock.get.mockResolvedValue(libraryStub.externalLibrary1);
 
       await sut.queueScan(libraryStub.externalLibrary1.id, {});
-
-      expect(jobMock.queue.mock.calls).toEqual([
-        [
-          {
-            name: JobName.LIBRARY_QUEUE_SCAN,
-            data: {
-              id: libraryStub.externalLibrary1.id,
-            },
-          },
-        ],
-      ]);
-    });
-
-    it('should queue a library scan of all modified assets', async () => {
-      libraryMock.get.mockResolvedValue(libraryStub.externalLibrary1);
-
-      await sut.queueScan(libraryStub.externalLibrary1.id, { refreshModifiedFiles: true });
 
       expect(jobMock.queue.mock.calls).toEqual([
         [
@@ -1165,7 +1148,7 @@ describe(LibraryService.name, () => {
     it('should queue the refresh job', async () => {
       libraryMock.getAll.mockResolvedValue([libraryStub.externalLibrary1]);
 
-      await expect(sut.handleQueueAllScan({})).resolves.toBe(JobStatus.SUCCESS);
+      await expect(sut.handleQueueAllScan()).resolves.toBe(JobStatus.SUCCESS);
 
       expect(jobMock.queue.mock.calls).toEqual([
         [

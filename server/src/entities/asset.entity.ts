@@ -171,7 +171,11 @@ export class AssetEntity {
   @OneToOne(() => AssetJobStatusEntity, (jobStatus) => jobStatus.asset, { nullable: true })
   jobStatus?: AssetJobStatusEntity;
 
-  @Column({ nullable: true })
+  @Column({
+    type: 'enum',
+    enum: AssetTrashReason,
+    nullable: true,
+  })
   trashReason?: AssetTrashReason | null;
 
   @Index('IDX_assets_duplicateId')

@@ -7842,6 +7842,13 @@
               "type": "string"
             },
             "type": "array"
+          },
+          "trashReason": {
+            "enum": [
+              "user",
+              "offline"
+            ],
+            "type": "string"
           }
         },
         "required": [
@@ -10462,12 +10469,6 @@
       },
       "ScanLibraryDto": {
         "properties": {
-          "refreshAllFiles": {
-            "type": "boolean"
-          },
-          "refreshModifiedFiles": {
-            "type": "boolean"
-          },
           "removeDeleted": {
             "type": "boolean"
           }
