@@ -2,6 +2,7 @@ import { BadRequestException } from '@nestjs/common';
 import { Stats } from 'node:fs';
 import { SystemConfig } from 'src/config';
 import { SystemConfigCore } from 'src/cores/system-config.core';
+import { AssetTrashReason } from 'src/dtos/asset.dto';
 import { mapLibrary } from 'src/dtos/library.dto';
 import { UserEntity } from 'src/entities/user.entity';
 import { AssetType } from 'src/enum';
@@ -251,7 +252,7 @@ describe(LibraryService.name, () => {
     });
   });
 
-  describe('handleRemoveDeleted', () => {
+  describe('handleOfflineAsset', () => {
     it('should skip missing assets', async () => {
       const mockAssetJob: ILibraryOfflineJob = {
         id: assetStub.external.id,
@@ -277,7 +278,10 @@ describe(LibraryService.name, () => {
 
       await expect(sut.handleOfflineAsset(mockAssetJob)).resolves.toBe(JobStatus.SUCCESS);
 
-      expect(assetMock.remove).toHaveBeenCalledWith(assetStub.external);
+      expect(assetMock.updateAll).toHaveBeenCalledWith([assetStub.external.id], {
+        trashReason: AssetTrashReason.OFFLINE,
+      });
+      expect(assetMock.softDeleteAll).toHaveBeenCalledWith([assetStub.external.id]);
     });
 
     it('should offline assets matching an exclusion pattern', async () => {
@@ -290,8 +294,10 @@ describe(LibraryService.name, () => {
       assetMock.getById.mockResolvedValue(assetStub.external);
 
       await expect(sut.handleOfflineAsset(mockAssetJob)).resolves.toBe(JobStatus.SUCCESS);
-
-      expect(assetMock.remove).toHaveBeenCalledWith(assetStub.external);
+      expect(assetMock.updateAll).toHaveBeenCalledWith([assetStub.external.id], {
+        trashReason: AssetTrashReason.OFFLINE,
+      });
+      expect(assetMock.softDeleteAll).toHaveBeenCalledWith([assetStub.external.id]);
     });
 
     it('should set assets outside of import paths as offline', async () => {
@@ -306,7 +312,10 @@ describe(LibraryService.name, () => {
 
       await expect(sut.handleOfflineAsset(mockAssetJob)).resolves.toBe(JobStatus.SUCCESS);
 
-      expect(assetMock.remove).toHaveBeenCalledWith(assetStub.external);
+      expect(assetMock.updateAll).toHaveBeenCalledWith([assetStub.external.id], {
+        trashReason: AssetTrashReason.OFFLINE,
+      });
+      expect(assetMock.softDeleteAll).toHaveBeenCalledWith([assetStub.external.id]);
     });
 
     it('should do nothing with online assets', async () => {
@@ -1114,6 +1123,14 @@ describe(LibraryService.name, () => {
         [
           {
             name: JobName.LIBRARY_QUEUE_SCAN,
+            data: {
+              id: libraryStub.externalLibrary1.id,
+            },
+          },
+        ],
+        [
+          {
+            name: JobName.LIBRARY_QUEUE_REMOVE_DELETED,
             data: {
               id: libraryStub.externalLibrary1.id,
             },
