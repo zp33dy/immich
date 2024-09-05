@@ -1,4 +1,4 @@
-import { LibraryResponseDto, LoginResponseDto, TrashReason, getAllLibraries, scan as scanLibrary } from '@immich/sdk';
+import { LibraryResponseDto, LoginResponseDto, TrashReason, getAllLibraries, scanLibrary } from '@immich/sdk';
 import { cpSync, existsSync } from 'node:fs';
 import { Socket } from 'socket.io-client';
 import { userDto, uuidDto } from 'src/fixtures';

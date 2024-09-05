@@ -20,7 +20,7 @@
     getAllLibraries,
     getLibraryStatistics,
     getUserAdmin,
-    scan,
+    scanLibrary,
     updateLibrary,
     type LibraryResponseDto,
     type LibraryStatsResponseDto,
@@ -121,7 +121,7 @@
   const handleScanAll = async () => {
     try {
       for (const library of libraries) {
-        await scan({ id: library.id });
+        await scanLibrary({ id: library.id });
       }
       notificationController.show({
         message: $t('admin.refreshing_all_libraries'),
@@ -134,7 +134,7 @@
 
   const handleScan = async (libraryId: string) => {
     try {
-      await scan({ id: libraryId });
+      await scanLibrary({ id: libraryId });
       notificationController.show({
         message: $t('admin.scanning_library'),
         type: NotificationType.Info,

@@ -24,11 +24,13 @@
   import {
     AssetJobName,
     AssetTypeEnum,
+    TrashReason,
     type AlbumResponseDto,
     type AssetResponseDto,
     type StackResponseDto,
   } from '@immich/sdk';
   import {
+    mdiAlertOutline,
     mdiCogRefreshOutline,
     mdiContentCopy,
     mdiDatabaseRefreshOutline,
@@ -58,9 +60,9 @@
   export let onClose: () => void;
 
   const sharedLink = getSharedLink();
-
+  $: isOffline = asset.trashReason === TrashReason.Offline;
   $: isOwner = $user && asset.ownerId === $user?.id;
-  $: showDownloadButton = sharedLink ? sharedLink.allowDownload : false;
+  $: showDownloadButton = sharedLink ? sharedLink.allowDownload : !isOffline;
   // $: showEditorButton =
   //   isOwner &&
   //   asset.type === AssetTypeEnum.Image &&
@@ -84,6 +86,9 @@
   >
     {#if !asset.isTrashed && $user}
       <ShareAction {asset} />
+    {/if}
+    {#if isOffline}
+      <CircleIconButton color="alert" icon={mdiAlertOutline} on:click={onShowDetail} title={$t('asset_offline')} />
     {/if}
     {#if asset.livePhotoVideoId}
       <slot name="motion-photo" />
@@ -132,7 +137,7 @@
         {#if showDownloadButton}
           <DownloadAction {asset} menuItem />
         {/if}
-        {#if asset.isTrashed}
+        {#if asset.trashReason == TrashReason.Deleted}
           <RestoreAction {asset} {onAction} />
         {:else}
           <AddToAlbumAction {asset} {onAction} />

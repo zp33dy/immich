@@ -229,7 +229,7 @@ export const assetStub = {
     duplicateId: null,
   }),
 
-  trashedByUser: Object.freeze<AssetEntity>({
+  trashed: Object.freeze<AssetEntity>({
     id: 'asset-id',
     deviceAssetId: 'device-asset-id',
     fileModifiedAt: new Date('2023-02-23T05:06:29.716Z'),
@@ -246,7 +246,7 @@ export const assetStub = {
     createdAt: new Date('2023-02-23T05:06:29.716Z'),
     updatedAt: new Date('2023-02-23T05:06:29.716Z'),
     deletedAt: new Date('2023-02-24T05:06:29.716Z'),
-    trashReason: AssetTrashReason.USER,
+    trashReason: AssetTrashReason.DELETED,
     localDateTime: new Date('2023-02-23T05:06:29.716Z'),
     isFavorite: false,
     isArchived: false,

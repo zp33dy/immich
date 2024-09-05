@@ -1,3 +1,4 @@
+import { AssetTrashReason } from 'src/dtos/asset.dto';
 import { AssetFaceEntity } from 'src/entities/asset-face.entity';
 import { AssetEntity } from 'src/entities/asset.entity';
 import { GeodataPlacesEntity } from 'src/entities/geodata-places.entity';
@@ -63,6 +64,7 @@ export interface SearchStatusOptions {
   status?: AssetStatus;
   withArchived?: boolean;
   withDeleted?: boolean;
+  trashReason?: AssetTrashReason | null;
 }
 
 export interface SearchOneToOneRelationOptions {

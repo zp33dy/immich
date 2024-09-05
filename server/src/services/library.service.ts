@@ -377,7 +377,7 @@ export class LibraryService {
     if (asset) {
       const mtime = await this.getMtime(assetPath);
 
-      if (asset.trashReason == AssetTrashReason.USER) {
+      if (asset.trashReason == AssetTrashReason.DELETED) {
         // Asset is trashed by user, don't re-import. This is to prevent re-importing assets that are manually trashed by the user
         this.logger.debug(`Asset is previously trashed by user, won't refresh: ${assetPath}`);
         return JobStatus.SKIPPED;

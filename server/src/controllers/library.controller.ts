@@ -66,7 +66,7 @@ export class LibraryController {
   @Post(':id/scan')
   @HttpCode(HttpStatus.NO_CONTENT)
   @Authenticated({ admin: true })
-  scan(@Param() { id }: UUIDParamDto) {
+  scanLibrary(@Param() { id }: UUIDParamDto) {
     return this.service.queueScan(id);
   }
 }

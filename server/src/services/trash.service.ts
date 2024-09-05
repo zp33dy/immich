@@ -1,6 +1,7 @@
 import { Inject } from '@nestjs/common';
 import { OnEmit } from 'src/decorators';
 import { BulkIdsDto } from 'src/dtos/asset-ids.response.dto';
+import { AssetTrashReason } from 'src/dtos/asset.dto';
 import { AuthDto } from 'src/dtos/auth.dto';
 import { TrashResponseDto } from 'src/dtos/trash.dto';
 import { Permission } from 'src/enum';

@@ -586,7 +586,7 @@ describe(LibraryService.name, () => {
         assetPath: assetStub.hasFileExtension.originalPath,
       };
 
-      assetMock.getByLibraryIdAndOriginalPath.mockResolvedValue(assetStub.trashedByUser);
+      assetMock.getByLibraryIdAndOriginalPath.mockResolvedValue(assetStub.trashed);
 
       await expect(sut.handleAssetRefresh(mockLibraryJob)).resolves.toBe(JobStatus.SKIPPED);
 

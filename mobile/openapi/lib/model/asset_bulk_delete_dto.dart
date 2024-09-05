@@ -139,12 +139,12 @@ class AssetBulkDeleteDtoTrashReasonEnum {
 
   String toJson() => value;
 
-  static const user = AssetBulkDeleteDtoTrashReasonEnum._(r'user');
+  static const deleted = AssetBulkDeleteDtoTrashReasonEnum._(r'deleted');
   static const offline = AssetBulkDeleteDtoTrashReasonEnum._(r'offline');
 
   /// List of all possible values in this [enum][AssetBulkDeleteDtoTrashReasonEnum].
   static const values = <AssetBulkDeleteDtoTrashReasonEnum>[
-    user,
+    deleted,
     offline,
   ];
 
@@ -184,7 +184,7 @@ class AssetBulkDeleteDtoTrashReasonEnumTypeTransformer {
   AssetBulkDeleteDtoTrashReasonEnum? decode(dynamic data, {bool allowNull = true}) {
     if (data != null) {
       switch (data) {
-        case r'user': return AssetBulkDeleteDtoTrashReasonEnum.user;
+        case r'deleted': return AssetBulkDeleteDtoTrashReasonEnum.deleted;
         case r'offline': return AssetBulkDeleteDtoTrashReasonEnum.offline;
         default:
           if (!allowNull) {

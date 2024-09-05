@@ -109,7 +109,7 @@ describe(MediaService.name, () => {
 
     it('should queue trashed assets when force is true', async () => {
       assetMock.getAll.mockResolvedValue({
-        items: [assetStub.trashedByUser],
+        items: [assetStub.trashed],
         hasNextPage: false,
       });
       personMock.getAll.mockResolvedValue({
@@ -127,7 +127,7 @@ describe(MediaService.name, () => {
       expect(jobMock.queueAll).toHaveBeenCalledWith([
         {
           name: JobName.GENERATE_PREVIEW,
-          data: { id: assetStub.trashedByUser.id },
+          data: { id: assetStub.trashed.id },
         },
       ]);
     });

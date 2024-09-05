@@ -2849,7 +2849,7 @@
     },
     "/libraries/{id}/scan": {
       "post": {
-        "operationId": "scan",
+        "operationId": "scanLibrary",
         "parameters": [
           {
             "name": "id",
@@ -7835,7 +7835,7 @@
           },
           "trashReason": {
             "enum": [
-              "user",
+              "deleted",
               "offline"
             ],
             "type": "string"

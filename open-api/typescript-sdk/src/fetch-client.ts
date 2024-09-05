@@ -2018,7 +2018,7 @@ export function updateLibrary({ id, updateLibraryDto }: {
         body: updateLibraryDto
     })));
 }
-export function scan({ id }: {
+export function scanLibrary({ id }: {
     id: string;
 }, opts?: Oazapfts.RequestOpts) {
     return oazapfts.ok(oazapfts.fetchText(`/libraries/${encodeURIComponent(id)}/scan`, {
@@ -3351,7 +3351,7 @@ export enum Permission {
     AdminUserDelete = "admin.user.delete"
 }
 export enum TrashReason {
-    User = "user",
+    Deleted = "deleted",
     Offline = "offline"
 }
 export enum AssetMediaStatus {

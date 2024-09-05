@@ -247,7 +247,7 @@ class LibrariesApi {
   /// Parameters:
   ///
   /// * [String] id (required):
-  Future<Response> scanWithHttpInfo(String id,) async {
+  Future<Response> scanLibraryWithHttpInfo(String id,) async {
     // ignore: prefer_const_declarations
     final path = r'/libraries/{id}/scan'
       .replaceAll('{id}', id);
@@ -276,8 +276,8 @@ class LibrariesApi {
   /// Parameters:
   ///
   /// * [String] id (required):
-  Future<void> scan(String id,) async {
-    final response = await scanWithHttpInfo(id,);
+  Future<void> scanLibrary(String id,) async {
+    final response = await scanLibraryWithHttpInfo(id,);
     if (response.statusCode >= HttpStatus.badRequest) {
       throw ApiException(response.statusCode, await _decodeBodyBytes(response));
     }
