@@ -1,6 +1,5 @@
 import { BadRequestException } from '@nestjs/common';
 import { Stats } from 'node:fs';
-import { Subject } from 'rxjs';
 import { SystemConfig } from 'src/config';
 import { SystemConfigCore } from 'src/cores/system-config.core';
 import { AssetTrashReason } from 'src/dtos/asset.dto';

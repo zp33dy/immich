@@ -1,5 +1,5 @@
 import { LoginResponseDto, TrashReason, getAssetInfo, getAssetStatistics, scanLibrary } from '@immich/sdk';
-import { existsSync } from 'fs';
+import { existsSync } from 'node:fs';
 import { Socket } from 'socket.io-client';
 import { errorDto } from 'src/responses';
 import { app, asBearerAuth, testAssetDir, testAssetDirInternal, utils } from 'src/utils';
