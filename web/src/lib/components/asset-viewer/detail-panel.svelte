@@ -151,7 +151,12 @@
         </div>
         <div class="rounded-b border border-t-0 border-red-400 bg-red-100 px-4 py-3 text-red-700">
           <p>
-            {$t('asset_offline_description', { values: { path: asset.originalPath } })}
+            {#if $user?.isAdmin}
+              <p>{$t('admin.asset_offline_description')}</p>
+              <p class="text-sm">{$t('path')}: {asset.originalPath}</p>
+            {:else}
+              {$t('asset_offline_description')}
+            {/if}
           </p>
         </div>
       </div>
