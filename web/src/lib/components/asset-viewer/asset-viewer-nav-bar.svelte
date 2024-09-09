@@ -137,7 +137,7 @@
         {#if showDownloadButton}
           <DownloadAction {asset} menuItem />
         {/if}
-        {#if asset.trashReason == TrashReason.Deleted}
+        {#if asset.trashReason === TrashReason.Deleted}
           <RestoreAction {asset} {onAction} />
         {:else}
           <AddToAlbumAction {asset} {onAction} />
