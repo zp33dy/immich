@@ -14,7 +14,6 @@ import {
   AssetJobName,
   AssetJobsDto,
   AssetStatsDto,
-  AssetTrashReason,
   UpdateAssetDto,
   mapStats,
 } from 'src/dtos/asset.dto';
@@ -301,6 +300,7 @@ export class AssetService {
 
   async deleteAll(auth: AuthDto, dto: AssetBulkDeleteDto): Promise<void> {
     const { ids, force } = dto;
+    let { trashReason } = dto;
 
     await requireAccess(this.access, { auth, permission: Permission.ASSET_DELETE, ids });
     await this.assetRepository.updateAll(ids, {

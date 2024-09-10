@@ -16,6 +16,7 @@ import {
   ValidateLibraryResponseDto,
   mapLibrary,
 } from 'src/dtos/library.dto';
+import { AssetEntity } from 'src/entities/asset.entity';
 import { AssetType } from 'src/enum';
 import { IAssetRepository } from 'src/interfaces/asset.interface';
 import { ICryptoRepository } from 'src/interfaces/crypto.interface';
@@ -367,46 +368,50 @@ export class LibraryService {
     }
   }
 
+  private async refreshExistingAsset(asset: AssetEntity) {
+    if (asset.trashReason == AssetTrashReason.DELETED) {
+      // Asset is trashed by user, don't re-import. This is to prevent re-importing assets that are manually trashed by the user
+      this.logger.debug(`Asset is previously trashed by user, won't refresh: ${asset.originalPath}`);
+      return JobStatus.SKIPPED;
+    } else if (asset.trashReason == AssetTrashReason.OFFLINE) {
+      this.logger.debug(`Asset is previously trashed as offline, restoring from trash: ${asset.originalPath}`);
+      await this.assetRepository.restoreAll([asset.id]);
+      return JobStatus.SUCCESS;
+
+      // TODO: can we send an event just like the asset restore in the trash service?
+    }
+
+    const mtime = await this.getMtime(asset.originalPath);
+    if (mtime.toISOString() === asset.fileModifiedAt.toISOString()) {
+      // Asset exists on disk and in db and mtime has not changed, do nothing
+      this.logger.debug(`Asset already exists in database and on disk, will not import: ${asset.originalPath}`);
+      return JobStatus.SKIPPED;
+    }
+    // File modification time has changed since last time we checked, re-read from disk
+    this.logger.debug(
+      `File modification time has changed, re-importing asset: ${asset.originalPath}. Old mtime: ${asset.fileModifiedAt}. New mtime: ${mtime}`,
+    );
+
+    await this.assetRepository.updateAll([asset.id], {
+      fileCreatedAt: mtime,
+      fileModifiedAt: mtime,
+      originalFileName: parse(asset.originalPath).base,
+      deletedAt: null,
+      trashReason: null,
+    });
+  }
+
   async handleAssetRefresh(job: ILibraryFileJob): Promise<JobStatus> {
     const assetPath = path.normalize(job.assetPath);
 
     let asset = await this.assetRepository.getByLibraryIdAndOriginalPath(job.id, assetPath);
 
-    const originalFileName = parse(assetPath).base;
-
     if (asset) {
-      const mtime = await this.getMtime(assetPath);
+      const status = await this.refreshExistingAsset(asset);
 
-      if (asset.trashReason == AssetTrashReason.DELETED) {
-        // Asset is trashed by user, don't re-import. This is to prevent re-importing assets that are manually trashed by the user
-        this.logger.debug(`Asset is previously trashed by user, won't refresh: ${assetPath}`);
-        return JobStatus.SKIPPED;
-      } else if (asset.trashReason == AssetTrashReason.OFFLINE) {
-        this.logger.debug(`Asset is previously trashed as offline, restoring from trash: ${assetPath}`);
-        await this.assetRepository.restoreAll([asset.id]);
-        return JobStatus.SUCCESS;
-
-        // TODO: can we send an event just like the asset restore in the trash service?
-      } else {
-        if (mtime.toISOString() === asset.fileModifiedAt.toISOString()) {
-          // Asset exists on disk and in db and mtime has not changed, do nothing
-          this.logger.debug(`Asset already exists in database and on disk, will not import: ${assetPath}`);
-          return JobStatus.SKIPPED;
-        } else {
-          // File modification time has changed since last time we checked, re-read from disk
-          this.logger.debug(
-            `File modification time has changed, re-importing asset: ${assetPath}. Old mtime: ${asset.fileModifiedAt}. New mtime: ${mtime}`,
-          );
-        }
+      if (status) {
+        return status;
       }
-
-      await this.assetRepository.updateAll([asset.id], {
-        fileCreatedAt: mtime,
-        fileModifiedAt: mtime,
-        originalFileName,
-        deletedAt: null,
-        trashReason: null,
-      });
     } else {
       // This asset is new to us, read it from disk
       this.logger.log(`Importing new library asset: ${assetPath}`);
@@ -452,7 +457,7 @@ export class LibraryService {
         fileModifiedAt: mtime,
         localDateTime: mtime,
         type: assetType,
-        originalFileName,
+        originalFileName: parse(assetPath).base,
         sidecarPath,
         isExternal: true,
       });

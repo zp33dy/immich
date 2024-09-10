@@ -176,7 +176,7 @@ export class AssetEntity {
     enum: AssetTrashReason,
     nullable: true,
   })
-  trashReason?: AssetTrashReason | null;
+  trashReason!: AssetTrashReason | null;
 
   @Index('IDX_assets_duplicateId')
   @Column({ type: 'uuid', nullable: true })
