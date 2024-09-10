@@ -20,11 +20,11 @@
   /**
    * The alignment of the context menu relative to the button.
    */
-  export let align: Align = 'top-left';
+  export let align: Align = 'top-right';
   /**
    * The direction in which the context menu should open.
    */
-  export let direction: 'left' | 'right' = 'right';
+  export let direction: 'left' | 'right' = 'left';
   export let color: Color = 'transparent';
   export let size: string | undefined = undefined;
   export let padding: Padding | undefined = undefined;

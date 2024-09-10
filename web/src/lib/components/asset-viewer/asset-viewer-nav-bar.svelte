@@ -129,7 +129,7 @@
     {#if isOwner}
       <DeleteAction {asset} {onAction} />
 
-      <ButtonContextMenu direction="left" align="top-right" color="opaque" title={$t('more')} icon={mdiDotsVertical}>
+      <ButtonContextMenu color="opaque" title={$t('more')} icon={mdiDotsVertical}>
         {#if showSlideshow}
           <MenuOption icon={mdiPresentationPlay} text={$t('slideshow')} onClick={onPlaySlideshow} />
         {/if}

@@ -107,6 +107,8 @@
         size="24"
         padding="3"
         hideContent
+        direction="right"
+        align="top-left"
       >
         <SharedLinkEdit menuItem {onEdit} />
         <SharedLinkCopy menuItem {link} />

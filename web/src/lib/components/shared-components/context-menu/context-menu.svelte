@@ -28,7 +28,8 @@
       const directionWidth = direction === 'left' ? rect.width : 0;
       const menuHeight = Math.min(menuElement.clientHeight, height) || 0;
 
-      left = Math.min(window.innerWidth - rect.width, x - directionWidth);
+      const calcLeft = Math.min(window.innerWidth - rect.width, x - directionWidth);
+      left = Math.max(0, calcLeft);
       top = Math.min(window.innerHeight - menuHeight, y);
     }
   }
@@ -36,7 +37,12 @@
 
 <div
   bind:clientHeight={height}
-  class="fixed z-10 min-w-[200px] w-max max-w-[300px] overflow-hidden rounded-lg shadow-lg"
+  class="fixed z-10 overflow-hidden rounded-lg duration-[250ms] ease-in {isVisible
+    ? 'shadow-lg transition-shadow'
+    : 'shadow-none transition-none'}"
+  class:shadow-none={!isVisible}
+  class:shadow-lg={isVisible}
+  class:transition-none={!isVisible}
   style:left="{left}px"
   style:top="{top}px"
   transition:slide={{ duration: 250, easing: quintOut }}
@@ -48,9 +54,9 @@
     aria-label={ariaLabel}
     aria-labelledby={ariaLabelledBy}
     bind:this={menuElement}
-    class:max-h-[100vh]={isVisible}
-    class:max-h-0={!isVisible}
-    class="flex flex-col transition-all duration-[250ms] ease-in-out outline-none"
+    class="flex flex-col transition-all duration-[250ms] ease-in-out outline-none immich-scrollbar bg-slate-100 relative min-w-[200px] max-w-[200px] sm:max-w-[256px] rounded-lg {isVisible
+      ? 'translate-x-0 max-h-dvh overflow-y-auto'
+      : `${direction === 'left' ? 'translate-x-28' : '-translate-x-28'} max-h-0 overflow-y-hidden`}"
     role="menu"
     tabindex="-1"
   >

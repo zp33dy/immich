@@ -33,7 +33,9 @@
   role="menuitem"
 >
   {#if icon}
-    <Icon path={icon} ariaHidden={true} size="18" />
+    <div class="flex-none">
+      <Icon path={icon} ariaHidden={true} size="18" />
+    </div>
   {/if}
   <div>
     {text}

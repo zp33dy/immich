@@ -237,7 +237,7 @@
 
       <FavoriteAction removeFavorite={isAllFavorite} onFavorite={handleUpdate} />
 
-      <ButtonContextMenu icon={mdiDotsVertical} title={$t('add')}>
+      <ButtonContextMenu icon={mdiDotsVertical} title={$t('menu')}>
         <DownloadAction menuItem />
         <ChangeDate menuItem />
         <ChangeLocation menuItem />
