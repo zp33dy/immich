@@ -73,6 +73,7 @@ export const assetStub = {
     deletedAt: null,
     isExternal: false,
     duplicateId: null,
+    trashReason: null,
   }),
 
   noWebpPath: Object.freeze<AssetEntity>({
@@ -110,6 +111,7 @@ export const assetStub = {
     } as ExifEntity,
     deletedAt: null,
     duplicateId: null,
+    trashReason: null,
   }),
 
   noThumbhash: Object.freeze<AssetEntity>({
@@ -144,6 +146,7 @@ export const assetStub = {
     sidecarPath: null,
     deletedAt: null,
     duplicateId: null,
+    trashReason: null,
   }),
 
   primaryImage: Object.freeze<AssetEntity>({
@@ -188,6 +191,7 @@ export const assetStub = {
       { id: 'stack-child-asset-2' } as AssetEntity,
     ]),
     duplicateId: null,
+    trashReason: null,
   }),
 
   image: Object.freeze<AssetEntity>({
@@ -227,6 +231,7 @@ export const assetStub = {
       exifImageWidth: 2160,
     } as ExifEntity,
     duplicateId: null,
+    trashReason: null,
   }),
 
   trashed: Object.freeze<AssetEntity>({
@@ -344,6 +349,7 @@ export const assetStub = {
       exifImageWidth: 2160,
     } as ExifEntity,
     duplicateId: null,
+    trashReason: null,
   }),
 
   external: Object.freeze<AssetEntity>({
@@ -383,6 +389,7 @@ export const assetStub = {
       fileSizeInByte: 5000,
     } as ExifEntity,
     duplicateId: null,
+    trashReason: null,
   }),
 
   image1: Object.freeze<AssetEntity>({
@@ -420,6 +427,7 @@ export const assetStub = {
       fileSizeInByte: 5000,
     } as ExifEntity,
     duplicateId: null,
+    trashReason: null,
   }),
 
   imageFrom2015: Object.freeze<AssetEntity>({
@@ -443,7 +451,6 @@ export const assetStub = {
     isFavorite: true,
     isArchived: false,
     isExternal: false,
-
     duration: null,
     isVisible: true,
     livePhotoVideo: null,
@@ -458,6 +465,7 @@ export const assetStub = {
     } as ExifEntity,
     deletedAt: null,
     duplicateId: null,
+    trashReason: null,
   }),
 
   video: Object.freeze<AssetEntity>({
@@ -497,6 +505,7 @@ export const assetStub = {
     } as ExifEntity,
     deletedAt: null,
     duplicateId: null,
+    trashReason: null,
   }),
 
   livePhotoMotionAsset: Object.freeze({
@@ -634,6 +643,7 @@ export const assetStub = {
     } as ExifEntity,
     deletedAt: null,
     duplicateId: null,
+    trashReason: null,
   }),
   sidecar: Object.freeze<AssetEntity>({
     id: 'asset-id',
@@ -667,6 +677,7 @@ export const assetStub = {
     sidecarPath: '/original/path.ext.xmp',
     deletedAt: null,
     duplicateId: null,
+    trashReason: null,
   }),
   sidecarWithoutExt: Object.freeze<AssetEntity>({
     id: 'asset-id',
@@ -700,6 +711,7 @@ export const assetStub = {
     sidecarPath: '/original/path.xmp',
     deletedAt: null,
     duplicateId: null,
+    trashReason: null,
   }),
 
   hasEncodedVideo: Object.freeze<AssetEntity>({
@@ -737,6 +749,7 @@ export const assetStub = {
     } as ExifEntity,
     deletedAt: null,
     duplicateId: null,
+    trashReason: null,
   }),
   missingFileExtension: Object.freeze<AssetEntity>({
     id: 'asset-id',
@@ -775,6 +788,7 @@ export const assetStub = {
       fileSizeInByte: 5000,
     } as ExifEntity,
     duplicateId: null,
+    trashReason: null,
   }),
   hasFileExtension: Object.freeze<AssetEntity>({
     id: 'asset-id',
@@ -813,6 +827,7 @@ export const assetStub = {
       fileSizeInByte: 5000,
     } as ExifEntity,
     duplicateId: null,
+    trashReason: null,
   }),
   imageDng: Object.freeze<AssetEntity>({
     id: 'asset-id',
@@ -851,6 +866,7 @@ export const assetStub = {
       bitsPerSample: 14,
     } as ExifEntity,
     duplicateId: null,
+    trashReason: null,
   }),
   hasEmbedding: Object.freeze<AssetEntity>({
     id: 'asset-id-embedding',
@@ -891,6 +907,7 @@ export const assetStub = {
       assetId: 'asset-id',
       embedding: Array.from({ length: 512 }, Math.random),
     },
+    trashReason: null,
   }),
   hasDupe: Object.freeze<AssetEntity>({
     id: 'asset-id-dupe',
@@ -931,5 +948,6 @@ export const assetStub = {
       assetId: 'asset-id',
       embedding: Array.from({ length: 512 }, Math.random),
     },
+    trashReason: null,
   }),
 };
