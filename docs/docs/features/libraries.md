@@ -1,22 +1,8 @@
 # External Libraries
 
-External libraries track assets stored in the filesystem outside of Immich. When the external library is scanned, Immich will load videos and photos from disk and create the corresponding assets. These items will then be shown in the main timeline, and they will look and behave like any other asset, including viewing on the map, adding to albums, etc.
+External libraries track assets stored in the filesystem outside of Immich. When the external library is scanned, Immich will load videos and photos from disk and create the corresponding assets. These assets will then be shown in the main timeline, and they will look and behave like any other asset, including viewing on the map, adding to albums, etc. Later, if a file is modified outside of Immich, you need to scan the library for the changes to show up.
 
-If a file is modified outside of Immich, the changes will not be reflected in immich until the library is scanned again. There are different ways to scan a library depending on the use case:
-
-- Scan For New Assets: This is the default scan method and also the quickest. It will scan all files in the library and add new files to the library.
-- Scan All Library Files: Same as above, but will check each existing asset to see if the modification time has changed. If it has, the asset will be updated. Since it has to check each asset, this is slower than Scan Library Files.
-- Force Scan All Library Files: Same as above, but will read each asset from disk no matter the modification time. This is useful in some cases where an asset has been modified externally but the modification time has not changed. This is the slowest way to scan because it reads each asset from disk.
-
-By default, a new scan is run every day to automatically pick up changes.
-
-:::caution
-
-Due to aggressive caching it can take some time for a refreshed asset to appear correctly in the web view. You need to clear the cache in your browser to see the changes. This is a known issue and will be fixed in a future release. In Chrome, you need to open the developer console with F12, then reload the page with F5, and finally right click on the reload button and select "Empty Cache and Hard Reload".
-
-:::
-
-In external libraries, the file path is used for duplicate detection. This means that if a file is moved to a different location, it will be added as a new asset. If the file is moved back to its original location, it will be added as a new asset. In contrast to upload libraries, two identical files can be uploaded if they are in different locations. This is a deliberate design choice to make Immich reflect the file system as closely as possible. Remember that duplication detection is only done within the same library, so if you have multiple external libraries, the same file can be added to multiple libraries.
+If an external asset is deleted from disk, Immich will move it to trash on rescan. To restore the asset, you need to restore the original file. After 30 days the file will be removed from trash, and any changes to metadata within Immich will be lost.
 
 :::caution
 
@@ -24,17 +10,11 @@ If you add metadata to an external asset in any way (i.e. add it to an album or 
 
 :::
 
-### Deleted External Assets
-
-If you delete assets from disk, move asset files, edit import paths, or adding exclusion patterns, you need to select "Remove Deleted Assets". This checks every asset in the library and removes it if the corresponding asset on disk is not accessible. Immich will also check every file against the import paths and exclusion patterns and remove any assets that violate them.
-
 :::caution
 
-This will also remove any asset from Immich that is currently not found on disk, including offline network shares.
+Due to aggressive caching it can take some time for a refreshed asset to appear correctly in the web view. You need to clear the cache in your browser to see the changes. This is a known issue and will be fixed in a future release. In Chrome, you need to open the developer console with F12, then reload the page with F5, and finally right click on the reload button and select "Empty Cache and Hard Reload".
 
 :::
-
-In order to prevent accidental deletion, this scan is never run automatically and must be manually triggered.
 
 ### Import Paths
 
@@ -66,9 +46,13 @@ Some basic examples:
 - `**/Raw/**` will exclude all files in any directory named `Raw`
 - `**/*.{tif,jpg}` will exclude all files with the extension `.tif` or `.jpg`
 
+Special characters such as @ should be escaped, such as
+
+- `**/\@eadir/**` will exclude all files in any directory named `@eadir`
+
 ### Automatic watching (EXPERIMENTAL)
 
-This feature - currently hidden in the config file - is considered experimental and for advanced users only. If enabled, it will allow automatic watching of the filesystem which means new assets are automatically imported to Immich without needing to rescan. Deleted assets are, as always, marked as offline and can be removed with the "Remove offline files" button.
+This feature - currently hidden in the config file - is considered experimental and for advanced users only. If enabled, it will allow automatic watching of the filesystem which means new assets are automatically imported to Immich without needing to rescan.
 
 If your photos are on a network drive, automatic file watching likely won't work. In that case, you will have to rely on a periodic library refresh to pull in your changes.
 
@@ -84,7 +68,7 @@ In rare cases, the library watcher can hang, preventing Immich from starting up.
 
 ### Nightly job
 
-There is an automatic job that's run once a day and refreshes all modified files in all libraries as well as cleans up any libraries stuck in deletion.
+There is an automatic scan job that is scheduled run once a day. This job also cleans up any libraries stuck in deletion.
 
 ## Usage
 
@@ -144,7 +128,7 @@ Next, we'll add an exclusion pattern to filter out raw files.
 - Enter `**/Raw/**` and click save.
 - Click save
 - Click the drop-down menu on the newly created library
-- Click on Scan Library Files
+- Click on Scan
 
 The christmas trip library will now be scanned in the background. In the meantime, let's add the videos and old photos to another library.
 
@@ -161,7 +145,7 @@ If you get an error here, please rename the other external library to something 
 - Click on Add Path
 - Enter `/mnt/media/videos` then click Add
 - Click Save
-- Click on Scan Library Files
+- Click on Scan
 
 Within seconds, the assets from the old-pics and videos folders should show up in the main timeline.
 
