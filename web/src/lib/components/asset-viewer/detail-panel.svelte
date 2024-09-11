@@ -149,15 +149,17 @@
         <div class="rounded-t bg-red-500 px-4 py-2 font-bold text-white">
           {$t('asset_offline')}
         </div>
-        <div class="rounded-b border border-t-0 border-red-400 bg-red-100 px-4 py-3 text-red-700">
+        <div class="border border-t-0 border-red-400 bg-red-100 px-4 py-3 text-red-700">
           <p>
             {#if $user?.isAdmin}
               <p>{$t('admin.asset_offline_description')}</p>
-              <p class="text-sm">{$t('path')}: {asset.originalPath}</p>
             {:else}
               {$t('asset_offline_description')}
             {/if}
           </p>
+        </div>
+        <div class="rounded-b bg-red-500 px-4 py-2 text-white text-sm">
+          <p>{asset.originalPath}</p>
         </div>
       </div>
     </section>
