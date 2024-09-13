@@ -370,7 +370,6 @@ export class LibraryService {
 
   private async refreshExistingAsset(asset: AssetEntity) {
     if (asset.trashReason == AssetTrashReason.DELETED) {
-      // Asset is trashed by user, don't re-import. This is to prevent re-importing assets that are manually trashed by the user
       this.logger.debug(`Asset is previously trashed by user, won't refresh: ${asset.originalPath}`);
       return JobStatus.SKIPPED;
     } else if (asset.trashReason == AssetTrashReason.OFFLINE) {
@@ -383,11 +382,9 @@ export class LibraryService {
 
     const mtime = await this.getMtime(asset.originalPath);
     if (mtime.toISOString() === asset.fileModifiedAt.toISOString()) {
-      // Asset exists on disk and in db and mtime has not changed, do nothing
       this.logger.debug(`Asset already exists in database and on disk, will not import: ${asset.originalPath}`);
       return JobStatus.SKIPPED;
     }
-    // File modification time has changed since last time we checked, re-read from disk
     this.logger.debug(
       `File modification time has changed, re-importing asset: ${asset.originalPath}. Old mtime: ${asset.fileModifiedAt}. New mtime: ${mtime}`,
     );

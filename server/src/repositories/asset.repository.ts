@@ -44,7 +44,6 @@ import {
   MoreThan,
   Not,
   Repository,
-  UpdateResult,
 } from 'typeorm';
 
 const truncateMap: Record<TimeBucketSize, string> = {
@@ -831,7 +830,7 @@ export class AssetRepository implements IAssetRepository {
   })
   async restoreAllDeleted(ownerId?: string): Promise<void> {
     await this.repository.update(
-      { ownerId: ownerId, trashReason: AssetTrashReason.DELETED },
+      { ownerId, trashReason: AssetTrashReason.DELETED },
       { deletedAt: null, trashReason: null },
     );
   }
