@@ -376,8 +376,6 @@ export class LibraryService {
       this.logger.debug(`Asset is previously trashed as offline, restoring from trash: ${asset.originalPath}`);
       await this.assetRepository.restoreAll([asset.id]);
       return JobStatus.SUCCESS;
-
-      // TODO: can we send an event just like the asset restore in the trash service?
     }
 
     const mtime = await this.getMtime(asset.originalPath);
