@@ -37,7 +37,7 @@ describe(TrashService.name, () => {
   describe('restoreAssets', () => {
     it('should require asset restore access for all ids', async () => {
       await expect(
-        sut.restoreAssets(authStub.user1, {
+        sut.restore(authStub.user1, {
           ids: ['asset-1'],
         }),
       ).rejects.toBeInstanceOf(BadRequestException);

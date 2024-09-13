@@ -233,4 +233,6 @@ export interface IAssetRepository {
   getAllForUserFullSync(options: AssetFullSyncOptions): Promise<AssetEntity[]>;
   getChangedDeltaSync(options: AssetDeltaSyncOptions): Promise<AssetEntity[]>;
   upsertFile(options: { assetId: string; type: AssetFileType; path: string }): Promise<void>;
+  restoreAllDeleted(userId: string): Promise<void>;
+  restoreAllDeletedById(ids: string[]): Promise<void>;
 }

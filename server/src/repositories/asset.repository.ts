@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Chunked, ChunkedArray, DummyValue, GenerateSql } from 'src/decorators';
+import { AssetTrashReason } from 'src/dtos/asset.dto';
 import { AssetFileEntity } from 'src/entities/asset-files.entity';
 import { AssetJobStatusEntity } from 'src/entities/asset-job-status.entity';
 import { AssetEntity } from 'src/entities/asset.entity';
@@ -43,6 +44,7 @@ import {
   MoreThan,
   Not,
   Repository,
+  UpdateResult,
 } from 'typeorm';
 
 const truncateMap: Record<TimeBucketSize, string> = {
@@ -818,5 +820,33 @@ export class AssetRepository implements IAssetRepository {
   @GenerateSql({ params: [{ assetId: DummyValue.UUID, type: AssetFileType.PREVIEW, path: '/path/to/file' }] })
   async upsertFile({ assetId, type, path }: { assetId: string; type: AssetFileType; path: string }): Promise<void> {
     await this.fileRepository.upsert({ assetId, type, path }, { conflictPaths: ['assetId', 'type'] });
+  }
+
+  @GenerateSql({
+    params: [
+      {
+        ownerId: DummyValue.UUID,
+      },
+    ],
+  })
+  async restoreAllDeleted(ownerId?: string): Promise<void> {
+    await this.repository.update(
+      { ownerId: ownerId, trashReason: AssetTrashReason.DELETED },
+      { deletedAt: null, trashReason: null },
+    );
+  }
+
+  @GenerateSql({
+    params: [
+      {
+        ownerId: DummyValue.UUID,
+      },
+    ],
+  })
+  async restoreAllDeletedById(ids: string[]): Promise<void> {
+    await this.repository.update(
+      { id: In(ids), trashReason: AssetTrashReason.DELETED },
+      { deletedAt: null, trashReason: null },
+    );
   }
 }
