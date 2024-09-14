@@ -328,9 +328,9 @@ describe(JobService.name, () => {
       it(`should queue ${jobs.length} jobs when a ${item.name} job finishes successfully`, async () => {
         if (item.name === JobName.GENERATE_THUMBNAILS && item.data.source === 'upload') {
           if (item.data.id === 'asset-live-image') {
-            assetMock.getByIds.mockResolvedValue([assetStub.livePhotoStillAsset]);
+            assetMock.getByIdsWithAllRelations.mockResolvedValue([assetStub.livePhotoStillAsset]);
           } else {
-            assetMock.getByIds.mockResolvedValue([assetStub.livePhotoMotionAsset]);
+            assetMock.getByIdsWithAllRelations.mockResolvedValue([assetStub.livePhotoMotionAsset]);
           }
         }
 
@@ -349,7 +349,7 @@ describe(JobService.name, () => {
         }
       });
 
-      it(`should not queue any jobs when ${item.name} finishes with 'false'`, async () => {
+      it(`should not queue any jobs when ${item.name} fails`, async () => {
         await sut.init(makeMockHandlers(JobStatus.FAILED));
         await jobMock.addHandler.mock.calls[0][2](item);
 

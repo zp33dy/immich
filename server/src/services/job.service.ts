@@ -271,25 +271,28 @@ export class JobService {
           break;
         }
 
+        const [asset] = await this.assetRepository.getByIdsWithAllRelations([item.data.id]);
+        if (!asset) {
+          this.logger.warn(`Could not find asset ${item.data.id} after generating thumbnails`);
+          break;
+        }
+
         const jobs: JobItem[] = [
           { name: JobName.SMART_SEARCH, data: item.data },
           { name: JobName.FACE_DETECTION, data: item.data },
         ];
 
-        const [asset] = await this.assetRepository.getByIdsWithAllRelations([item.data.id]);
-        if (asset) {
-          if (asset.type === AssetType.VIDEO) {
-            jobs.push({ name: JobName.VIDEO_CONVERSION, data: item.data });
-          } else if (asset.livePhotoVideoId) {
-            jobs.push({ name: JobName.VIDEO_CONVERSION, data: { id: asset.livePhotoVideoId } });
-          }
-
-          if (asset.isVisible) {
-            this.eventRepository.clientSend(ClientEvent.UPLOAD_SUCCESS, asset.ownerId, mapAsset(asset));
-          }
+        if (asset.type === AssetType.VIDEO) {
+          jobs.push({ name: JobName.VIDEO_CONVERSION, data: item.data });
+        } else if (asset.livePhotoVideoId) {
+          jobs.push({ name: JobName.VIDEO_CONVERSION, data: { id: asset.livePhotoVideoId } });
         }
 
         await this.jobRepository.queueAll(jobs);
+        if (asset.isVisible) {
+          this.eventRepository.clientSend(ClientEvent.UPLOAD_SUCCESS, asset.ownerId, mapAsset(asset));
+        }
+
         break;
       }
 

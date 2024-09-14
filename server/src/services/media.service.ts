@@ -183,13 +183,11 @@ export class MediaService {
       return JobStatus.SKIPPED;
     }
 
-    let previewPath: string | undefined;
-    let thumbnailPath: string | undefined;
-    let thumbhash: Buffer | undefined;
+    let generated: { previewPath: string; thumbnailPath: string; thumbhash: Buffer } | undefined;
     if (asset.type === AssetType.IMAGE) {
-      ({ previewPath, thumbnailPath, thumbhash } = await this.generateImageThumbnails(asset));
+      generated = await this.generateImageThumbnails(asset);
     } else if (asset.type === AssetType.VIDEO) {
-      ({ previewPath, thumbnailPath, thumbhash } = await this.generateVideoThumbnails(asset));
+      generated = await this.generateVideoThumbnails(asset);
     } else {
       this.logger.warn(`Skipping thumbnail generation for asset ${id}: ${asset.type} is not an image or video`);
       return JobStatus.SKIPPED;
@@ -197,12 +195,12 @@ export class MediaService {
 
     const { previewFile, thumbnailFile } = getAssetFiles(asset.files);
     const toUpsert: UpsertFileOptions[] = [];
-    if (previewFile?.path !== previewPath) {
-      toUpsert.push({ assetId: asset.id, path: previewPath!, type: AssetFileType.PREVIEW });
+    if (previewFile?.path !== generated.previewPath) {
+      toUpsert.push({ assetId: asset.id, path: generated.previewPath!, type: AssetFileType.PREVIEW });
     }
 
-    if (thumbnailFile?.path !== thumbnailPath) {
-      toUpsert.push({ assetId: asset.id, path: thumbnailPath!, type: AssetFileType.THUMBNAIL });
+    if (thumbnailFile?.path !== generated.thumbnailPath) {
+      toUpsert.push({ assetId: asset.id, path: generated.thumbnailPath!, type: AssetFileType.THUMBNAIL });
     }
 
     if (toUpsert.length > 0) {
@@ -210,12 +208,12 @@ export class MediaService {
     }
 
     const pathsToDelete = [];
-    if (previewFile && previewFile.path !== previewPath) {
+    if (previewFile && previewFile.path !== generated.previewPath) {
       this.logger.debug(`Deleting old preview for asset ${asset.id}`);
       pathsToDelete.push(previewFile.path);
     }
 
-    if (thumbnailFile && thumbnailFile.path !== thumbnailPath) {
+    if (thumbnailFile && thumbnailFile.path !== generated.thumbnailPath) {
       this.logger.debug(`Deleting old thumbnail for asset ${asset.id}`);
       pathsToDelete.push(thumbnailFile.path);
     }
@@ -224,8 +222,8 @@ export class MediaService {
       await Promise.all(pathsToDelete.map((path) => this.storageRepository.unlink(path)));
     }
 
-    if (asset.thumbhash != thumbhash) {
-      await this.assetRepository.update({ id: asset.id, thumbhash });
+    if (asset.thumbhash != generated.thumbhash) {
+      await this.assetRepository.update({ id: asset.id, thumbhash: generated.thumbhash });
     }
 
     await this.assetRepository.upsertJobStatus({ assetId: asset.id, previewAt: new Date(), thumbnailAt: new Date() });
