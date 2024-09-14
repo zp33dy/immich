@@ -11,7 +11,6 @@ export interface CropOptions {
 }
 
 export interface ImageOptions {
-  crop?: CropOptions;
   format: ImageFormat;
   path: string;
   quality: number;
@@ -20,10 +19,11 @@ export interface ImageOptions {
 
 export interface GenerateImageOptions {
   colorspace: string;
-  preview: ImageOptions;
-  thumbnail: ImageOptions;
-  thumbhash: boolean;
+  crop?: CropOptions;
+  preview?: ImageOptions;
   processInvalidImages: boolean;
+  thumbhash?: boolean;
+  thumbnail?: ImageOptions;
 }
 
 export interface VideoStreamInfo {

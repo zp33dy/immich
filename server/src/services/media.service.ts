@@ -1,4 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
+import { dirname } from 'path';
 import {
   AudioCodec,
   Colorspace,
@@ -171,28 +172,26 @@ export class MediaService {
   }
 
   async handleGenerateThumbnails({ id }: IEntityJob): Promise<JobStatus> {
-    const [{ image }, [asset]] = await Promise.all([
-      this.configCore.getConfig({ withCache: true }),
-      this.assetRepository.getByIds([id], { exifInfo: true, files: true }),
-    ]);
+    const asset = await this.assetRepository.getById(id, { exifInfo: true, files: true });
     if (!asset) {
+      this.logger.warn(`Thumbnail generation failed for asset ${id}: not found`);
       return JobStatus.FAILED;
     }
 
     if (!asset.isVisible) {
+      this.logger.verbose(`Thumbnail generation skipped for asset ${id}: not visible`);
       return JobStatus.SKIPPED;
     }
 
     let previewPath: string | undefined;
     let thumbnailPath: string | undefined;
+    let thumbhash: Buffer | undefined;
     if (asset.type === AssetType.IMAGE) {
-      const { preview, thumbnail } = await this.generateImageThumbnails(asset);
-      previewPath = preview.path;
-      thumbnailPath = thumbnail.path;
+      ({ previewPath, thumbnailPath, thumbhash } = await this.generateImageThumbnails(asset));
     } else if (asset.type === AssetType.VIDEO) {
-      previewPath = await this.generateVideoThumbnail(asset, AssetPathType.PREVIEW, image.previewFormat);
-      thumbnailPath = await this.generateVideoThumbnail(asset, AssetPathType.THUMBNAIL, image.thumbnailFormat);
+      ({ previewPath, thumbnailPath, thumbhash } = await this.generateVideoThumbnails(asset));
     } else {
+      this.logger.warn(`Skipping thumbnail generation for asset ${id}: ${asset.type} is not an image or video`);
       return JobStatus.SKIPPED;
     }
 
@@ -225,6 +224,10 @@ export class MediaService {
       await Promise.all(pathsToDelete.map((path) => this.storageRepository.unlink(path)));
     }
 
+    if (asset.thumbhash != thumbhash) {
+      await this.assetRepository.update({ id: asset.id, thumbhash });
+    }
+
     await this.assetRepository.upsertJobStatus({ assetId: asset.id, previewAt: new Date(), thumbnailAt: new Date() });
 
     return JobStatus.SUCCESS;
@@ -233,31 +236,39 @@ export class MediaService {
   private async generateImageThumbnails(asset: AssetEntity) {
     const { image } = await this.configCore.getConfig({ withCache: true });
     const imageOptions = this.getImageOptions(asset, image);
+    this.logger.log(`Creating folder for path ${imageOptions.preview.path} for asset ${asset.id}`);
     this.storageCore.ensureFolders(imageOptions.preview.path);
 
     const shouldExtract = image.extractEmbedded && mimeTypes.isRaw(asset.originalPath);
-    const extractedPath = StorageCore.getTempPathInDir(imageOptions.preview.path);
+    const extractedPath = StorageCore.getTempPathInDir(dirname(imageOptions.preview.path));
     const didExtract = shouldExtract && (await this.mediaRepository.extract(asset.originalPath, extractedPath));
 
     try {
       const useExtracted = didExtract && (await this.shouldUseExtractedImage(extractedPath, image.previewSize));
       const outputPath = useExtracted ? extractedPath : asset.originalPath;
-      const thumbhash = await this.mediaRepository.generateThumbnails(outputPath, imageOptions);
-      await this.assetRepository.update({ id: asset.id, thumbhash: thumbhash! });
+      const thumbhash = (await this.mediaRepository.generateThumbnails(outputPath, imageOptions)) as Buffer;
+      return { previewPath: imageOptions.preview.path, thumbnailPath: imageOptions.thumbnail.path, thumbhash };
     } finally {
       if (didExtract) {
         await this.storageRepository.unlink(extractedPath);
       }
     }
-
-    this.logger.log(
-      `Successfully generated thumbhash, ${image.previewFormat.toUpperCase()} preview and ${image.thumbnailFormat.toUpperCase()} thumbnail for asset ${asset.id}`,
-    );
-
-    return imageOptions;
   }
 
-  private getImageOptions(asset: AssetEntity, image: SystemConfigImageDto): GenerateImageOptions {
+  private async generateVideoThumbnails(asset: AssetEntity) {
+    const { image } = await this.configCore.getConfig({ withCache: true });
+    const previewPath = await this.generateVideoThumbnail(asset, AssetPathType.PREVIEW, image.previewFormat);
+    const thumbnailPath = await this.generateVideoThumbnail(asset, AssetPathType.THUMBNAIL, image.thumbnailFormat);
+    const thumbhash = await this.mediaRepository.generateThumbnails(previewPath, {
+      thumbhash: true,
+      processInvalidImages: process.env.IMMICH_PROCESS_INVALID_IMAGES === 'true',
+      colorspace: image.colorspace,
+    });
+
+    return { previewPath, thumbnailPath, thumbhash: thumbhash as Buffer };
+  }
+
+  private getImageOptions(asset: AssetEntity, image: SystemConfigImageDto) {
     const previewPath = StorageCore.getImagePath(asset, AssetPathType.PREVIEW, image.previewFormat);
     const thumbnailPath = StorageCore.getImagePath(asset, AssetPathType.THUMBNAIL, image.thumbnailFormat);
     const colorspace = this.isSRGB(asset) ? Colorspace.SRGB : image.colorspace;
@@ -289,17 +300,15 @@ export class MediaService {
     const { audioStreams, videoStreams } = await this.mediaRepository.probe(asset.originalPath);
     const mainVideoStream = this.getMainStream(videoStreams);
     if (!mainVideoStream) {
-      this.logger.warn(`Skipped thumbnail generation for asset ${asset.id}: no video streams found`);
-      return;
+      throw new Error(`No video streams found for asset ${asset.id}`);
     }
     const mainAudioStream = this.getMainStream(audioStreams);
     const config = ThumbnailConfig.create({ ...ffmpeg, targetResolution: size.toString() });
     const options = config.getCommand(TranscodeTarget.VIDEO, mainVideoStream, mainAudioStream);
     await this.mediaRepository.transcode(asset.originalPath, path, options);
 
-    const assetLabel = asset.isExternal ? asset.originalPath : asset.id;
     this.logger.log(
-      `Successfully generated ${format.toUpperCase()} ${asset.type.toLowerCase()} ${type} for asset ${assetLabel}`,
+      `Successfully generated ${format.toUpperCase()} ${asset.type.toLowerCase()} ${type} for asset ${asset.id}`,
     );
 
     return path;

@@ -46,25 +46,41 @@ export class MediaRepository implements IMediaRepository {
   }
 
   async generateThumbnails(input: string | Buffer, options: GenerateImageOptions): Promise<void | Buffer> {
+    const { colorspace, crop, preview, processInvalidImages, thumbhash, thumbnail } = options;
     // some invalid images can still be processed by sharp, but we want to fail on them by default to avoid crashes
-    const pipeline = sharp(input, { failOn: options.processInvalidImages ? 'none' : 'error', limitInputPixels: false })
-      .pipelineColorspace(options.colorspace === Colorspace.SRGB ? 'srgb' : 'rgb16')
-      .withIccProfile(options.colorspace)
+    let pipeline = sharp(input, { failOn: processInvalidImages ? 'none' : 'error', limitInputPixels: false })
+      .pipelineColorspace(colorspace === Colorspace.SRGB ? 'srgb' : 'rgb16')
+      .withIccProfile(colorspace)
       .rotate();
 
+    if (crop) {
+      pipeline = pipeline.extract(crop);
+    }
+
     const outputs = [];
-    if (options.preview) {
-      outputs.push(this.saveImageToFile(pipeline.clone(), options.preview));
+    if (preview) {
+      pipeline = pipeline.resize(preview.size, preview.size, {
+        fit: 'outside',
+        withoutEnlargement: true,
+      });
+      outputs.push(this.saveImageToFile(pipeline.clone(), preview));
     }
 
-    if (options.thumbnail) {
-      outputs.push(this.saveImageToFile(pipeline.clone(), options.thumbnail));
-    }
-
-    if (options.thumbhash) {
-      outputs.push(
-        pipeline
+    if (thumbnail) {
+      if (preview) {
+        pipeline = pipeline
           .clone()
+          .resize(thumbnail.size, thumbnail.size, { fit: 'outside', withoutEnlargement: true });
+        outputs.push(this.saveImageToFile(pipeline, thumbnail));
+      } else {
+        pipeline = pipeline.resize(thumbnail.size, thumbnail.size, { fit: 'outside', withoutEnlargement: true });
+        outputs.push(this.saveImageToFile(pipeline.clone(), thumbnail));
+      }
+    }
+
+    if (thumbhash) {
+      outputs.push(
+        (preview || thumbnail ? pipeline.clone() : pipeline)
           .resize(100, 100, { fit: 'inside', withoutEnlargement: true })
           .raw()
           .ensureAlpha()
@@ -72,21 +88,16 @@ export class MediaRepository implements IMediaRepository {
       );
     }
 
-    const [, buffer] = await Promise.all(outputs);
-
-    if ('data' in buffer && buffer.data && buffer.info) {
-      const thumbhash = await import('thumbhash');
-      return Buffer.from(thumbhash.rgbaToThumbHash(buffer.info.width, buffer.info.height, buffer.data));
+    const results = await Promise.all(outputs);
+    if (thumbhash) {
+      const buffer = results.at(-1) as { data: Buffer; info: sharp.OutputInfo };
+      const { rgbaToThumbHash } = await import('thumbhash');
+      return Buffer.from(rgbaToThumbHash(buffer.info.width, buffer.info.height, buffer.data));
     }
   }
 
   private saveImageToFile(pipeline: sharp.Sharp, options: ImageOptions): Promise<sharp.OutputInfo> {
-    if (options.crop) {
-      pipeline.extract(options.crop);
-    }
-
     return pipeline
-      .resize(options.size, options.size, { fit: 'outside', withoutEnlargement: true })
       .toFormat(options.format, {
         quality: options.quality,
         // this is default in libvips (except the threshold is 90), but we need to set it manually in sharp
