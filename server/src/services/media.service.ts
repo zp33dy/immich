@@ -254,9 +254,28 @@ export class MediaService {
   }
 
   private async generateVideoThumbnails(asset: AssetEntity) {
-    const { image } = await this.configCore.getConfig({ withCache: true });
-    const previewPath = await this.generateVideoThumbnail(asset, AssetPathType.PREVIEW, image.previewFormat);
-    const thumbnailPath = await this.generateVideoThumbnail(asset, AssetPathType.THUMBNAIL, image.thumbnailFormat);
+    const { image, ffmpeg } = await this.configCore.getConfig({ withCache: true });
+    const previewPath = StorageCore.getImagePath(asset, AssetPathType.PREVIEW, image.previewFormat);
+    const thumbnailPath = StorageCore.getImagePath(asset, AssetPathType.THUMBNAIL, image.thumbnailFormat);
+    this.storageCore.ensureFolders(previewPath);
+
+    const { audioStreams, videoStreams } = await this.mediaRepository.probe(asset.originalPath);
+    const mainVideoStream = this.getMainStream(videoStreams);
+    if (!mainVideoStream) {
+      throw new Error(`No video streams found for asset ${asset.id}`);
+    }
+    const mainAudioStream = this.getMainStream(audioStreams);
+
+    const previewConfig = ThumbnailConfig.create({ ...ffmpeg, targetResolution: image.previewSize.toString() });
+    const thumbnailConfig = ThumbnailConfig.create({ ...ffmpeg, targetResolution: image.thumbnailSize.toString() });
+
+    const previewOptions = previewConfig.getCommand(TranscodeTarget.VIDEO, mainVideoStream, mainAudioStream);
+    const thumbnailOptions = thumbnailConfig.getCommand(TranscodeTarget.VIDEO, mainVideoStream, mainAudioStream);
+    await Promise.all([
+      this.mediaRepository.transcode(asset.originalPath, previewPath, previewOptions),
+      this.mediaRepository.transcode(asset.originalPath, thumbnailPath, thumbnailOptions),
+    ]);
+
     const thumbhash = await this.mediaRepository.generateThumbnails(previewPath, {
       thumbhash: true,
       processInvalidImages: process.env.IMMICH_PROCESS_INVALID_IMAGES === 'true',
@@ -287,29 +306,6 @@ export class MediaService {
       thumbhash: true,
       processInvalidImages: process.env.IMMICH_PROCESS_INVALID_IMAGES === 'true',
     };
-  }
-
-  private async generateVideoThumbnail(asset: AssetEntity, type: GeneratedImageType, format: ImageFormat) {
-    const { image, ffmpeg } = await this.configCore.getConfig({ withCache: true });
-    const path = StorageCore.getImagePath(asset, type, format);
-    const size = type === AssetPathType.PREVIEW ? image.previewSize : image.thumbnailSize;
-    this.storageCore.ensureFolders(path);
-
-    const { audioStreams, videoStreams } = await this.mediaRepository.probe(asset.originalPath);
-    const mainVideoStream = this.getMainStream(videoStreams);
-    if (!mainVideoStream) {
-      throw new Error(`No video streams found for asset ${asset.id}`);
-    }
-    const mainAudioStream = this.getMainStream(audioStreams);
-    const config = ThumbnailConfig.create({ ...ffmpeg, targetResolution: size.toString() });
-    const options = config.getCommand(TranscodeTarget.VIDEO, mainVideoStream, mainAudioStream);
-    await this.mediaRepository.transcode(asset.originalPath, path, options);
-
-    this.logger.log(
-      `Successfully generated ${format.toUpperCase()} ${asset.type.toLowerCase()} ${type} for asset ${asset.id}`,
-    );
-
-    return path;
   }
 
   async handleQueueVideoConversion(job: IBaseJob): Promise<JobStatus> {

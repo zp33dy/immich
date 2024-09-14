@@ -267,7 +267,7 @@ export class JobService {
       }
 
       case JobName.GENERATE_THUMBNAILS: {
-        if (item.data.source !== 'upload') {
+        if (!item.data.notify && item.data.source !== 'upload') {
           break;
         }
 
