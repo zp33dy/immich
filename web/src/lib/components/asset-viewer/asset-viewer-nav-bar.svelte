@@ -24,7 +24,6 @@
   import {
     AssetJobName,
     AssetTypeEnum,
-    TrashReason,
     type AlbumResponseDto,
     type AssetResponseDto,
     type StackResponseDto,
@@ -60,7 +59,7 @@
   export let onClose: () => void;
 
   const sharedLink = getSharedLink();
-  $: isOffline = asset.trashReason === TrashReason.Offline;
+  $: isOffline = asset.isOffline;
   $: isOwner = $user && asset.ownerId === $user?.id;
   $: showDownloadButton = sharedLink ? sharedLink.allowDownload : !isOffline;
   // $: showEditorButton =
@@ -137,7 +136,7 @@
         {#if showDownloadButton}
           <DownloadAction {asset} menuItem />
         {/if}
-        {#if asset.trashReason === TrashReason.Deleted}
+        {#if asset.status === AssetStatus.TRASHED}
           <RestoreAction {asset} {onAction} />
         {:else}
           <AddToAlbumAction {asset} {onAction} />

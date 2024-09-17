@@ -74,6 +74,7 @@ const assetResponse: AssetResponseDto = {
   isTrashed: false,
   libraryId: 'library-id',
   hasMetadata: true,
+  isOffline: false,
 };
 
 const assetResponseWithoutMetadata = {
@@ -255,7 +256,7 @@ export const sharedLinkStub = {
           sidecarPath: null,
           deletedAt: null,
           duplicateId: null,
-          trashReason: null,
+          isOffline: false,
         },
       ],
     },

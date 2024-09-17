@@ -12,7 +12,6 @@
   import {
     AssetMediaSize,
     getAssetInfo,
-    TrashReason,
     updateAsset,
     type AlbumResponseDto,
     type AssetResponseDto,
@@ -73,7 +72,7 @@
     }
   }
 
-  $: isOffline = asset.trashReason === TrashReason.Offline;
+  $: isOffline = asset.isOffline;
   $: isOwner = $user?.id === asset.ownerId;
 
   const handleNewAsset = async (newAsset: AssetResponseDto) => {

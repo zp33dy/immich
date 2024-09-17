@@ -21,7 +21,6 @@ SELECT
   "entity"."isFavorite" AS "entity_isFavorite",
   "entity"."isArchived" AS "entity_isArchived",
   "entity"."isExternal" AS "entity_isExternal",
-  "entity"."isOffline" AS "entity_isOffline",
   "entity"."checksum" AS "entity_checksum",
   "entity"."duration" AS "entity_duration",
   "entity"."isVisible" AS "entity_isVisible",
@@ -29,6 +28,7 @@ SELECT
   "entity"."originalFileName" AS "entity_originalFileName",
   "entity"."sidecarPath" AS "entity_sidecarPath",
   "entity"."stackId" AS "entity_stackId",
+  "entity"."isOffline" AS "entity_isOffline",
   "entity"."duplicateId" AS "entity_duplicateId",
   "exifInfo"."assetId" AS "exifInfo_assetId",
   "exifInfo"."description" AS "exifInfo_description",
@@ -110,7 +110,6 @@ SELECT
   "AssetEntity"."isFavorite" AS "AssetEntity_isFavorite",
   "AssetEntity"."isArchived" AS "AssetEntity_isArchived",
   "AssetEntity"."isExternal" AS "AssetEntity_isExternal",
-  "AssetEntity"."isOffline" AS "AssetEntity_isOffline",
   "AssetEntity"."checksum" AS "AssetEntity_checksum",
   "AssetEntity"."duration" AS "AssetEntity_duration",
   "AssetEntity"."isVisible" AS "AssetEntity_isVisible",
@@ -118,6 +117,7 @@ SELECT
   "AssetEntity"."originalFileName" AS "AssetEntity_originalFileName",
   "AssetEntity"."sidecarPath" AS "AssetEntity_sidecarPath",
   "AssetEntity"."stackId" AS "AssetEntity_stackId",
+  "AssetEntity"."isOffline" AS "AssetEntity_isOffline",
   "AssetEntity"."duplicateId" AS "AssetEntity_duplicateId"
 FROM
   "assets" "AssetEntity"
@@ -145,7 +145,6 @@ SELECT
   "AssetEntity"."isFavorite" AS "AssetEntity_isFavorite",
   "AssetEntity"."isArchived" AS "AssetEntity_isArchived",
   "AssetEntity"."isExternal" AS "AssetEntity_isExternal",
-  "AssetEntity"."isOffline" AS "AssetEntity_isOffline",
   "AssetEntity"."checksum" AS "AssetEntity_checksum",
   "AssetEntity"."duration" AS "AssetEntity_duration",
   "AssetEntity"."isVisible" AS "AssetEntity_isVisible",
@@ -153,6 +152,7 @@ SELECT
   "AssetEntity"."originalFileName" AS "AssetEntity_originalFileName",
   "AssetEntity"."sidecarPath" AS "AssetEntity_sidecarPath",
   "AssetEntity"."stackId" AS "AssetEntity_stackId",
+  "AssetEntity"."isOffline" AS "AssetEntity_isOffline",
   "AssetEntity"."duplicateId" AS "AssetEntity_duplicateId",
   "AssetEntity__AssetEntity_exifInfo"."assetId" AS "AssetEntity__AssetEntity_exifInfo_assetId",
   "AssetEntity__AssetEntity_exifInfo"."description" AS "AssetEntity__AssetEntity_exifInfo_description",
@@ -234,7 +234,6 @@ SELECT
   "bd93d5747511a4dad4923546c51365bf1a803774"."isFavorite" AS "bd93d5747511a4dad4923546c51365bf1a803774_isFavorite",
   "bd93d5747511a4dad4923546c51365bf1a803774"."isArchived" AS "bd93d5747511a4dad4923546c51365bf1a803774_isArchived",
   "bd93d5747511a4dad4923546c51365bf1a803774"."isExternal" AS "bd93d5747511a4dad4923546c51365bf1a803774_isExternal",
-  "bd93d5747511a4dad4923546c51365bf1a803774"."isOffline" AS "bd93d5747511a4dad4923546c51365bf1a803774_isOffline",
   "bd93d5747511a4dad4923546c51365bf1a803774"."checksum" AS "bd93d5747511a4dad4923546c51365bf1a803774_checksum",
   "bd93d5747511a4dad4923546c51365bf1a803774"."duration" AS "bd93d5747511a4dad4923546c51365bf1a803774_duration",
   "bd93d5747511a4dad4923546c51365bf1a803774"."isVisible" AS "bd93d5747511a4dad4923546c51365bf1a803774_isVisible",
@@ -242,6 +241,7 @@ SELECT
   "bd93d5747511a4dad4923546c51365bf1a803774"."originalFileName" AS "bd93d5747511a4dad4923546c51365bf1a803774_originalFileName",
   "bd93d5747511a4dad4923546c51365bf1a803774"."sidecarPath" AS "bd93d5747511a4dad4923546c51365bf1a803774_sidecarPath",
   "bd93d5747511a4dad4923546c51365bf1a803774"."stackId" AS "bd93d5747511a4dad4923546c51365bf1a803774_stackId",
+  "bd93d5747511a4dad4923546c51365bf1a803774"."isOffline" AS "bd93d5747511a4dad4923546c51365bf1a803774_isOffline",
   "bd93d5747511a4dad4923546c51365bf1a803774"."duplicateId" AS "bd93d5747511a4dad4923546c51365bf1a803774_duplicateId",
   "AssetEntity__AssetEntity_files"."id" AS "AssetEntity__AssetEntity_files_id",
   "AssetEntity__AssetEntity_files"."assetId" AS "AssetEntity__AssetEntity_files_assetId",
@@ -275,8 +275,7 @@ FROM
   (
     SELECT
       "AssetEntity"."id" AS "AssetEntity_id",
-      "AssetEntity"."originalPath" AS "AssetEntity_originalPath",
-      "AssetEntity"."isOffline" AS "AssetEntity_isOffline"
+      "AssetEntity"."originalPath" AS "AssetEntity_originalPath"
     FROM
       "assets" "AssetEntity"
       LEFT JOIN "libraries" "AssetEntity__AssetEntity_library" ON "AssetEntity__AssetEntity_library"."id" = "AssetEntity"."libraryId"
@@ -322,7 +321,6 @@ FROM
       "AssetEntity"."isFavorite" AS "AssetEntity_isFavorite",
       "AssetEntity"."isArchived" AS "AssetEntity_isArchived",
       "AssetEntity"."isExternal" AS "AssetEntity_isExternal",
-      "AssetEntity"."isOffline" AS "AssetEntity_isOffline",
       "AssetEntity"."checksum" AS "AssetEntity_checksum",
       "AssetEntity"."duration" AS "AssetEntity_duration",
       "AssetEntity"."isVisible" AS "AssetEntity_isVisible",
@@ -330,6 +328,7 @@ FROM
       "AssetEntity"."originalFileName" AS "AssetEntity_originalFileName",
       "AssetEntity"."sidecarPath" AS "AssetEntity_sidecarPath",
       "AssetEntity"."stackId" AS "AssetEntity_stackId",
+      "AssetEntity"."isOffline" AS "AssetEntity_isOffline",
       "AssetEntity"."duplicateId" AS "AssetEntity_duplicateId"
     FROM
       "assets" "AssetEntity"
@@ -365,18 +364,6 @@ WHERE
       "libraryId" = $1
       AND "originalPath" = path
   );
-
--- AssetRepository.updateOfflineLibraryAssets
-UPDATE "assets"
-SET
-  "isOffline" = $1,
-  "updatedAt" = CURRENT_TIMESTAMP
-WHERE
-  (
-    "libraryId" = $2
-    AND NOT ("originalPath" IN ($3))
-    AND "isOffline" = $4
-  )
 
 -- AssetRepository.getAllByDeviceId
 SELECT
@@ -420,7 +407,6 @@ SELECT
   "AssetEntity"."isFavorite" AS "AssetEntity_isFavorite",
   "AssetEntity"."isArchived" AS "AssetEntity_isArchived",
   "AssetEntity"."isExternal" AS "AssetEntity_isExternal",
-  "AssetEntity"."isOffline" AS "AssetEntity_isOffline",
   "AssetEntity"."checksum" AS "AssetEntity_checksum",
   "AssetEntity"."duration" AS "AssetEntity_duration",
   "AssetEntity"."isVisible" AS "AssetEntity_isVisible",
@@ -428,6 +414,7 @@ SELECT
   "AssetEntity"."originalFileName" AS "AssetEntity_originalFileName",
   "AssetEntity"."sidecarPath" AS "AssetEntity_sidecarPath",
   "AssetEntity"."stackId" AS "AssetEntity_stackId",
+  "AssetEntity"."isOffline" AS "AssetEntity_isOffline",
   "AssetEntity"."duplicateId" AS "AssetEntity_duplicateId"
 FROM
   "assets" "AssetEntity"
@@ -474,7 +461,6 @@ SELECT
   "AssetEntity"."isFavorite" AS "AssetEntity_isFavorite",
   "AssetEntity"."isArchived" AS "AssetEntity_isArchived",
   "AssetEntity"."isExternal" AS "AssetEntity_isExternal",
-  "AssetEntity"."isOffline" AS "AssetEntity_isOffline",
   "AssetEntity"."checksum" AS "AssetEntity_checksum",
   "AssetEntity"."duration" AS "AssetEntity_duration",
   "AssetEntity"."isVisible" AS "AssetEntity_isVisible",
@@ -482,6 +468,7 @@ SELECT
   "AssetEntity"."originalFileName" AS "AssetEntity_originalFileName",
   "AssetEntity"."sidecarPath" AS "AssetEntity_sidecarPath",
   "AssetEntity"."stackId" AS "AssetEntity_stackId",
+  "AssetEntity"."isOffline" AS "AssetEntity_isOffline",
   "AssetEntity"."duplicateId" AS "AssetEntity_duplicateId"
 FROM
   "assets" "AssetEntity"
@@ -547,7 +534,6 @@ SELECT
   "AssetEntity"."isFavorite" AS "AssetEntity_isFavorite",
   "AssetEntity"."isArchived" AS "AssetEntity_isArchived",
   "AssetEntity"."isExternal" AS "AssetEntity_isExternal",
-  "AssetEntity"."isOffline" AS "AssetEntity_isOffline",
   "AssetEntity"."checksum" AS "AssetEntity_checksum",
   "AssetEntity"."duration" AS "AssetEntity_duration",
   "AssetEntity"."isVisible" AS "AssetEntity_isVisible",
@@ -555,6 +541,7 @@ SELECT
   "AssetEntity"."originalFileName" AS "AssetEntity_originalFileName",
   "AssetEntity"."sidecarPath" AS "AssetEntity_sidecarPath",
   "AssetEntity"."stackId" AS "AssetEntity_stackId",
+  "AssetEntity"."isOffline" AS "AssetEntity_isOffline",
   "AssetEntity"."duplicateId" AS "AssetEntity_duplicateId"
 FROM
   "assets" "AssetEntity"
@@ -602,7 +589,6 @@ SELECT
   "asset"."isFavorite" AS "asset_isFavorite",
   "asset"."isArchived" AS "asset_isArchived",
   "asset"."isExternal" AS "asset_isExternal",
-  "asset"."isOffline" AS "asset_isOffline",
   "asset"."checksum" AS "asset_checksum",
   "asset"."duration" AS "asset_duration",
   "asset"."isVisible" AS "asset_isVisible",
@@ -610,6 +596,7 @@ SELECT
   "asset"."originalFileName" AS "asset_originalFileName",
   "asset"."sidecarPath" AS "asset_sidecarPath",
   "asset"."stackId" AS "asset_stackId",
+  "asset"."isOffline" AS "asset_isOffline",
   "asset"."duplicateId" AS "asset_duplicateId",
   "exifInfo"."assetId" AS "exifInfo_assetId",
   "exifInfo"."description" AS "exifInfo_description",
@@ -662,7 +649,6 @@ SELECT
   "stackedAssets"."isFavorite" AS "stackedAssets_isFavorite",
   "stackedAssets"."isArchived" AS "stackedAssets_isArchived",
   "stackedAssets"."isExternal" AS "stackedAssets_isExternal",
-  "stackedAssets"."isOffline" AS "stackedAssets_isOffline",
   "stackedAssets"."checksum" AS "stackedAssets_checksum",
   "stackedAssets"."duration" AS "stackedAssets_duration",
   "stackedAssets"."isVisible" AS "stackedAssets_isVisible",
@@ -670,6 +656,7 @@ SELECT
   "stackedAssets"."originalFileName" AS "stackedAssets_originalFileName",
   "stackedAssets"."sidecarPath" AS "stackedAssets_sidecarPath",
   "stackedAssets"."stackId" AS "stackedAssets_stackId",
+  "stackedAssets"."isOffline" AS "stackedAssets_isOffline",
   "stackedAssets"."duplicateId" AS "stackedAssets_duplicateId"
 FROM
   "assets" "asset"
@@ -742,7 +729,6 @@ SELECT
   "asset"."isFavorite" AS "asset_isFavorite",
   "asset"."isArchived" AS "asset_isArchived",
   "asset"."isExternal" AS "asset_isExternal",
-  "asset"."isOffline" AS "asset_isOffline",
   "asset"."checksum" AS "asset_checksum",
   "asset"."duration" AS "asset_duration",
   "asset"."isVisible" AS "asset_isVisible",
@@ -750,6 +736,7 @@ SELECT
   "asset"."originalFileName" AS "asset_originalFileName",
   "asset"."sidecarPath" AS "asset_sidecarPath",
   "asset"."stackId" AS "asset_stackId",
+  "asset"."isOffline" AS "asset_isOffline",
   "asset"."duplicateId" AS "asset_duplicateId",
   "exifInfo"."assetId" AS "exifInfo_assetId",
   "exifInfo"."description" AS "exifInfo_description",
@@ -802,7 +789,6 @@ SELECT
   "stackedAssets"."isFavorite" AS "stackedAssets_isFavorite",
   "stackedAssets"."isArchived" AS "stackedAssets_isArchived",
   "stackedAssets"."isExternal" AS "stackedAssets_isExternal",
-  "stackedAssets"."isOffline" AS "stackedAssets_isOffline",
   "stackedAssets"."checksum" AS "stackedAssets_checksum",
   "stackedAssets"."duration" AS "stackedAssets_duration",
   "stackedAssets"."isVisible" AS "stackedAssets_isVisible",
@@ -810,6 +796,7 @@ SELECT
   "stackedAssets"."originalFileName" AS "stackedAssets_originalFileName",
   "stackedAssets"."sidecarPath" AS "stackedAssets_sidecarPath",
   "stackedAssets"."stackId" AS "stackedAssets_stackId",
+  "stackedAssets"."isOffline" AS "stackedAssets_isOffline",
   "stackedAssets"."duplicateId" AS "stackedAssets_duplicateId"
 FROM
   "assets" "asset"
@@ -858,7 +845,6 @@ SELECT
   "asset"."isFavorite" AS "asset_isFavorite",
   "asset"."isArchived" AS "asset_isArchived",
   "asset"."isExternal" AS "asset_isExternal",
-  "asset"."isOffline" AS "asset_isOffline",
   "asset"."checksum" AS "asset_checksum",
   "asset"."duration" AS "asset_duration",
   "asset"."isVisible" AS "asset_isVisible",
@@ -866,6 +852,7 @@ SELECT
   "asset"."originalFileName" AS "asset_originalFileName",
   "asset"."sidecarPath" AS "asset_sidecarPath",
   "asset"."stackId" AS "asset_stackId",
+  "asset"."isOffline" AS "asset_isOffline",
   "asset"."duplicateId" AS "asset_duplicateId",
   "exifInfo"."assetId" AS "exifInfo_assetId",
   "exifInfo"."description" AS "exifInfo_description",
@@ -918,7 +905,6 @@ SELECT
   "stackedAssets"."isFavorite" AS "stackedAssets_isFavorite",
   "stackedAssets"."isArchived" AS "stackedAssets_isArchived",
   "stackedAssets"."isExternal" AS "stackedAssets_isExternal",
-  "stackedAssets"."isOffline" AS "stackedAssets_isOffline",
   "stackedAssets"."checksum" AS "stackedAssets_checksum",
   "stackedAssets"."duration" AS "stackedAssets_duration",
   "stackedAssets"."isVisible" AS "stackedAssets_isVisible",
@@ -926,6 +912,7 @@ SELECT
   "stackedAssets"."originalFileName" AS "stackedAssets_originalFileName",
   "stackedAssets"."sidecarPath" AS "stackedAssets_sidecarPath",
   "stackedAssets"."stackId" AS "stackedAssets_stackId",
+  "stackedAssets"."isOffline" AS "stackedAssets_isOffline",
   "stackedAssets"."duplicateId" AS "stackedAssets_duplicateId"
 FROM
   "assets" "asset"
@@ -1024,7 +1011,6 @@ SELECT
   "asset"."isFavorite" AS "asset_isFavorite",
   "asset"."isArchived" AS "asset_isArchived",
   "asset"."isExternal" AS "asset_isExternal",
-  "asset"."isOffline" AS "asset_isOffline",
   "asset"."checksum" AS "asset_checksum",
   "asset"."duration" AS "asset_duration",
   "asset"."isVisible" AS "asset_isVisible",
@@ -1032,6 +1018,7 @@ SELECT
   "asset"."originalFileName" AS "asset_originalFileName",
   "asset"."sidecarPath" AS "asset_sidecarPath",
   "asset"."stackId" AS "asset_stackId",
+  "asset"."isOffline" AS "asset_isOffline",
   "asset"."duplicateId" AS "asset_duplicateId",
   "exifInfo"."assetId" AS "exifInfo_assetId",
   "exifInfo"."description" AS "exifInfo_description",
@@ -1100,7 +1087,6 @@ SELECT
   "asset"."isFavorite" AS "asset_isFavorite",
   "asset"."isArchived" AS "asset_isArchived",
   "asset"."isExternal" AS "asset_isExternal",
-  "asset"."isOffline" AS "asset_isOffline",
   "asset"."checksum" AS "asset_checksum",
   "asset"."duration" AS "asset_duration",
   "asset"."isVisible" AS "asset_isVisible",
@@ -1108,6 +1094,7 @@ SELECT
   "asset"."originalFileName" AS "asset_originalFileName",
   "asset"."sidecarPath" AS "asset_sidecarPath",
   "asset"."stackId" AS "asset_stackId",
+  "asset"."isOffline" AS "asset_isOffline",
   "asset"."duplicateId" AS "asset_duplicateId",
   "exifInfo"."assetId" AS "exifInfo_assetId",
   "exifInfo"."description" AS "exifInfo_description",
@@ -1173,15 +1160,3 @@ RETURNING
   "id",
   "createdAt",
   "updatedAt"
-
--- AssetRepository.restoreAllDeleted
-UPDATE "assets"
-SET
-  "deletedAt" = $1,
-  "trashReason" = $2,
-  "updatedAt" = CURRENT_TIMESTAMP
-WHERE
-  (
-    "ownerId" = $3
-    AND "trashReason" = $4
-  )

@@ -76,12 +76,12 @@ export enum JobName {
   FACIAL_RECOGNITION = 'facial-recognition',
 
   // library management
-  LIBRARY_QUEUE_SCAN = 'library-scan-new',
-  LIBRARY_QUEUE_OFFLINE_CHECK = 'library-queue-remove-deleted',
-  LIBRARY_REFRESH_ASSET = 'library-refresh-asset',
-  LIBRARY_OFFLINE_CHECK = 'library-remove-deleted',
+  LIBRARY_QUEUE_SYNC_FILES = 'library-scan-new',
+  LIBRARY_QUEUE_SYNC_ASSETS = 'library-queue-remove-deleted',
+  LIBRARY_SYNC_FILE = 'library-refresh-asset',
+  LIBRARY_SYNC_ASSET = 'library-remove-deleted',
   LIBRARY_DELETE = 'library-delete',
-  LIBRARY_QUEUE_SCAN_ALL = 'library-queue-all-refresh',
+  LIBRARY_QUEUE_SYNC_ALL = 'library-queue-all-refresh',
   LIBRARY_QUEUE_CLEANUP = 'library-queue-cleanup',
 
   // cleanup
@@ -272,12 +272,12 @@ export type JobItem =
   | { name: JobName.ASSET_DELETION_CHECK; data?: IBaseJob }
 
   // Library Management
-  | { name: JobName.LIBRARY_REFRESH_ASSET; data: ILibraryFileJob }
-  | { name: JobName.LIBRARY_QUEUE_SCAN; data: IEntityJob }
-  | { name: JobName.LIBRARY_QUEUE_OFFLINE_CHECK; data: IEntityJob }
-  | { name: JobName.LIBRARY_OFFLINE_CHECK; data: IEntityJob }
+  | { name: JobName.LIBRARY_SYNC_FILE; data: ILibraryFileJob }
+  | { name: JobName.LIBRARY_QUEUE_SYNC_FILES; data: IEntityJob }
+  | { name: JobName.LIBRARY_QUEUE_SYNC_ASSETS; data: IEntityJob }
+  | { name: JobName.LIBRARY_SYNC_ASSET; data: IEntityJob }
   | { name: JobName.LIBRARY_DELETE; data: IEntityJob }
-  | { name: JobName.LIBRARY_QUEUE_SCAN_ALL; data?: IBaseJob }
+  | { name: JobName.LIBRARY_QUEUE_SYNC_ALL; data?: IBaseJob }
   | { name: JobName.LIBRARY_QUEUE_CLEANUP; data: IBaseJob }
 
   // Notification

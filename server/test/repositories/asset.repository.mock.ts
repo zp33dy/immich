@@ -42,7 +42,5 @@ export const newAssetRepositoryMock = (): Mocked<IAssetRepository> => {
     upsertFile: vitest.fn(),
     getAssetsByOriginalPath: vitest.fn(),
     getUniqueOriginalPaths: vitest.fn(),
-    restoreAllDeleted: vitest.fn(),
-    restoreAllDeletedById: vitest.fn(),
   };
 };
