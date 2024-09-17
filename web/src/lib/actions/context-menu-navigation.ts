@@ -46,7 +46,11 @@ export const contextMenuNavigation: Action<HTMLElement, Options> = (node, option
   };
 
   const moveSelection = async (direction: 'up' | 'down', event: KeyboardEvent) => {
-    const { selectionChanged, container, openDropdown } = options;
+    const { selectionChanged, container, openDropdown, isOpen } = options;
+    if (!isOpen) {
+      // reset the scroll position before opening the menu
+      container?.scrollTo({ top: 0 });
+    }
     if (openDropdown) {
       openDropdown(event);
       await tick();
