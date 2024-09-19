@@ -59,9 +59,8 @@
   export let onClose: () => void;
 
   const sharedLink = getSharedLink();
-  $: isOffline = asset.isOffline;
   $: isOwner = $user && asset.ownerId === $user?.id;
-  $: showDownloadButton = sharedLink ? sharedLink.allowDownload : !isOffline;
+  $: showDownloadButton = sharedLink ? sharedLink.allowDownload : !asset.isOffline;
   // $: showEditorButton =
   //   isOwner &&
   //   asset.type === AssetTypeEnum.Image &&
@@ -86,7 +85,7 @@
     {#if !asset.isTrashed && $user}
       <ShareAction {asset} />
     {/if}
-    {#if isOffline}
+    {#if asset.isOffline}
       <CircleIconButton color="alert" icon={mdiAlertOutline} on:click={onShowDetail} title={$t('asset_offline')} />
     {/if}
     {#if asset.livePhotoVideoId}
@@ -136,7 +135,7 @@
         {#if showDownloadButton}
           <DownloadAction {asset} menuItem />
         {/if}
-        {#if asset.status === AssetStatus.TRASHED}
+        {#if asset.isTrashed}
           <RestoreAction {asset} {onAction} />
         {:else}
           <AddToAlbumAction {asset} {onAction} />

@@ -141,7 +141,7 @@ export interface AssetUpdateDuplicateOptions {
   duplicateIds: string[];
 }
 
-export type AssetPathEntity = Pick<AssetEntity, 'id' | 'originalPath'>;
+export type AssetPathEntity = Pick<AssetEntity, 'id' | 'originalPath' | 'isOffline'>;
 
 export const IAssetRepository = 'IAssetRepository';
 
