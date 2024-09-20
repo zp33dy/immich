@@ -21,7 +21,7 @@
   import { fly } from 'svelte/transition';
   import Icon from '$lib/components/elements/icon.svelte';
   import { mdiMagnify, mdiUnfoldMoreHorizontal, mdiClose } from '@mdi/js';
-  import { createEventDispatcher, onDestroy, onMount, tick } from 'svelte';
+  import { createEventDispatcher, onMount, tick } from 'svelte';
   import type { FormEventHandler } from 'svelte/elements';
   import { shortcuts } from '$lib/actions/shortcut';
   import { focusOutside } from '$lib/actions/focus-outside';
@@ -81,11 +81,15 @@
     observer.observe(input);
     scrollableAncestor = input.closest('.overflow-y-auto, .overflow-y-scroll');
     scrollableAncestor?.addEventListener('scroll', onPositionChange);
-  });
+    window.visualViewport?.addEventListener('resize', onPositionChange);
+    window.visualViewport?.addEventListener('scroll', onPositionChange);
 
-  onDestroy(() => {
-    scrollableAncestor?.removeEventListener('scroll', onPositionChange);
-    observer.disconnect();
+    return () => {
+      observer.disconnect();
+      scrollableAncestor?.removeEventListener('scroll', onPositionChange);
+      window.visualViewport?.removeEventListener('resize', onPositionChange);
+      window.visualViewport?.removeEventListener('scroll', onPositionChange);
+    };
   });
 
   const dispatch = createEventDispatcher<{
@@ -155,21 +159,24 @@
       return undefined;
     }
 
-    const viewportHeight = window.innerHeight;
+    const vv = window.visualViewport;
+    const viewportHeight = vv?.height || 0;
+    const left = boundary.left + (vv?.offsetLeft || 0);
 
     if (dropdownDirection === 'top') {
       return {
         bottom: `${viewportHeight - boundary.top}px`,
-        left: `${boundary.left}px`,
+        left: `${left}px`,
         width: `${boundary.width}px`,
         maxHeight: maxHeight(boundary.top - dropdownOffset),
       };
     }
 
+    const top = boundary.bottom + (vv?.offsetTop || 0);
     const availableHeight = viewportHeight - boundary.bottom;
     return {
-      top: `${boundary.bottom}px`,
-      left: `${boundary.left}px`,
+      top: `${top}px`,
+      left: `${left}px`,
       width: `${boundary.width}px`,
       maxHeight: maxHeight(availableHeight - dropdownOffset),
     };
@@ -191,7 +198,7 @@
       return 'bottom';
     }
 
-    const viewportHeight = window.innerHeight;
+    const viewportHeight = window.visualViewport?.height || 0;
     const heightBelow = viewportHeight - boundary.bottom;
     const heightAbove = boundary.top;
 
@@ -201,7 +208,6 @@
   const getInputPosition = () => input?.getBoundingClientRect();
 </script>
 
-<svelte:window on:resize={onPositionChange} />
 <label class="immich-form-label" class:sr-only={hideLabel} for={inputId}>{label}</label>
 <div
   class="relative w-full dark:text-gray-300 text-gray-700 text-base"
